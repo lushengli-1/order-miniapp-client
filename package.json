@@ -1,0 +1,32 @@
+{
+  "name": "order-app-client",
+  "version": "1.0.0",
+  "private": true,
+  "description": "点餐小程序前端",
+  "scripts": {
+    "dev:weapp": "taro build --type weapp --watch",
+    "build:weapp": "taro build --type weapp",
+    "dev:h5": "taro build --type h5 --watch",
+    "build:h5": "taro build --type h5"
+  },
+  "dependencies": {
+    "@babel/preset-react": "^7.29.7",
+    "@babel/runtime": "^7.23.2",
+    "@tarojs/components": "4.2.0",
+    "@tarojs/plugin-framework-react": "^4.2.0",
+    "@tarojs/plugin-platform-weapp": "^4.2.0",
+    "@tarojs/react": "4.2.0",
+    "@tarojs/runtime": "4.2.0",
+    "@tarojs/taro": "4.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.2",
+    "@tarojs/cli": "4.2.0",
+    "@tarojs/webpack5-runner": "4.2.0",
+    "@types/react": "^18.2.28",
+    "babel-preset-taro": "4.2.0",
+    "typescript": "^5.2.2"
+  }
+}

@@ -1,0 +1,72 @@
+.m-orders {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.tabs {
+  display: flex;
+  background: #fff;
+  white-space: nowrap;
+  padding: 0 20px;
+  border-bottom: 1px solid #eee;
+  .tab-item {
+    display: inline-block;
+    padding: 24px 30px;
+    font-size: 28px;
+    color: #666;
+    border-bottom: 3px solid transparent;
+    &.active {
+      color: #ff6b35;
+      border-bottom-color: #ff6b35;
+      font-weight: 600;
+    }
+  }
+}
+
+.order-list {
+  flex: 1;
+  padding: 20px;
+}
+
+.order-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+  .order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    .user-name { font-size: 28px; font-weight: 600; display: block; }
+    .table-no { font-size: 22px; color: #999; margin-top: 4px; display: block; }
+    .order-status { font-size: 26px; font-weight: 600; }
+  }
+  .order-no { font-size: 22px; color: #999; margin-top: 8px; display: block; }
+  .order-time { font-size: 22px; color: #999; margin-top: 4px; display: block; }
+  .order-remark { font-size: 24px; color: #666; margin-top: 8px; display: block; background: #f9f9f9; padding: 8px 12px; border-radius: 6px; }
+  .order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #f5f5f5;
+    .order-amount { font-size: 30px; color: #ff6b35; font-weight: 700; }
+    .action-btns { display: flex; gap: 12px; }
+    .action-btn {
+      padding: 12px 30px;
+      border-radius: 30px;
+      font-size: 24px;
+      &.accept { background: #ff6b35; color: #fff; }
+      &.complete { background: #4caf50; color: #fff; }
+    }
+  }
+}
+
+.empty {
+  text-align: center;
+  padding: 100px 0;
+  color: #999;
+  font-size: 28px;
+}

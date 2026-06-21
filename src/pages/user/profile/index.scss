@@ -1,0 +1,71 @@
+.profile-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 40px;
+}
+
+.user-section {
+  background: linear-gradient(135deg, #ff6b35, #ff8f5e);
+  padding: 50px 30px;
+  display: flex;
+  align-items: center;
+  .avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #fff;
+    font-weight: 700;
+    margin-right: 24px;
+  }
+  .user-info {
+    .user-name { font-size: 32px; font-weight: 700; color: #fff; display: block; }
+    .user-phone { font-size: 24px; color: rgba(255,255,255,0.8); margin-top: 6px; display: block; }
+  }
+}
+
+.menu-section {
+  background: #fff;
+  margin: 20px;
+  border-radius: 12px;
+  padding: 0 24px;
+  .menu-title {
+    font-size: 24px;
+    color: #999;
+    padding: 20px 0 8px;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .menu-item {
+    display: flex;
+    align-items: center;
+    padding: 24px 0;
+    border-bottom: 1px solid #f5f5f5;
+    &:last-child { border-bottom: none; }
+    .menu-icon { font-size: 32px; margin-right: 16px; }
+    .menu-label { flex: 1; font-size: 28px; color: #333; }
+    .menu-arrow { font-size: 32px; color: #ccc; }
+  }
+}
+
+.action-section {
+  padding: 20px;
+  .action-btn {
+    text-align: center;
+    padding: 24px;
+    border-radius: 12px;
+    font-size: 28px;
+    &.login {
+      background: #ff6b35;
+      color: #fff;
+    }
+    &.logout {
+      background: #fff;
+      color: #666;
+      border: 1px solid #ddd;
+    }
+  }
+}

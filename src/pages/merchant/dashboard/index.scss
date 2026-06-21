@@ -1,0 +1,63 @@
+.dashboard {
+  padding: 20px;
+}
+
+.loading, .error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #999;
+  font-size: 28px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  .stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    .stat-value { font-size: 36px; font-weight: 700; display: block; }
+    .stat-label { font-size: 24px; color: #666; margin-top: 8px; display: block; }
+    &.sales .stat-value { color: #ff6b35; }
+    &.orders .stat-value { color: #4caf50; }
+    &.pending .stat-value { color: #f44336; }
+    &.processing .stat-value { color: #2196f3; }
+  }
+}
+
+.section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 20px;
+  .section-title { font-size: 28px; font-weight: 600; margin-bottom: 16px; display: block; }
+}
+
+.info-grid {
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    .info-label { font-size: 26px; color: #666; }
+    .info-value { font-size: 26px; font-weight: 600; }
+  }
+}
+
+.empty { text-align: center; padding: 40px; color: #999; font-size: 26px; }
+
+.trend-list {
+  .trend-item {
+    display: flex;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid #f5f5f5;
+    &:last-child { border-bottom: none; }
+    .trend-date { width: 100px; font-size: 24px; color: #666; }
+    .trend-orders { flex: 1; font-size: 24px; color: #333; }
+    .trend-amount { font-size: 24px; color: #ff6b35; font-weight: 600; }
+  }
+}
