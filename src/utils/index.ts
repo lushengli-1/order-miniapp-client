@@ -43,10 +43,22 @@ export function getOrderStatusText(status: number): string {
   return map[status] || '未知';
 }
 
+// 用户端订单状态文本（对用户友好的描述）
+export function getUserOrderStatusText(status: number): string {
+  const map: Record<number, string> = {
+    0: '待支付',
+    1: '已通知厨师',
+    2: '准备中',
+    3: '已完成',
+    4: '已取消'
+  };
+  return map[status] || '未知';
+}
+
 // 订单状态颜色
 export function getOrderStatusColor(status: number): string {
   const map: Record<number, string> = {
-    0: '#ff9800',
+    0: '#8DB580',
     1: '#f44336',
     2: '#2196f3',
     3: '#4caf50',

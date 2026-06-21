@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, Input, Image } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import { dishAPI, cartAPI } from '../../../services/api';
 import { formatPrice, getImageUrl } from '../../../utils';
 import './index.scss';
@@ -28,12 +28,21 @@ export default function Home() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMerchant, setIsMerchant] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     loadPageData();
   }, []);
 
+  useDidShow(() => {
+    loadPageData();
+  });
+
   function loadPageData() {
+    // 从本地存储恢复购物车数据（即时显示）
+    const savedCart = Taro.getStorageSync('cart_items') || [];
+    setCart(savedCart);
+
     const user = Taro.getStorageSync('user');
     if (user?.role === 1) {
       setIsMerchant(true);
@@ -42,6 +51,23 @@ export default function Home() {
     }
     setIsMerchant(false);
     loadData();
+    syncCartFromServer();
+  }
+
+  async function syncCartFromServer() {
+    try {
+      const items = await cartAPI.getCart();
+      const serverCart = items.map(item => ({
+        dish_id: item.dish_id, name: item.name, image: item.image,
+        price: item.price, quantity: item.quantity, stock: item.stock
+      }));
+      if (serverCart.length > 0) {
+        setCart(serverCart);
+        Taro.setStorageSync('cart_items', serverCart);
+      }
+    } catch (err) {
+      // 服务端同步失败，本地存储的数据已展示
+    }
   }
 
   async function loadData() {
@@ -62,8 +88,8 @@ export default function Home() {
   }
 
   const filteredDishes = useMemo(
-    () => dishes.filter(d => d.category_id === activeCategory),
-    [dishes, activeCategory]
+    () => isSearching ? dishes : dishes.filter(d => d.category_id === activeCategory),
+    [dishes, activeCategory, isSearching]
   );
 
   const cartCount = useMemo(
@@ -75,6 +101,10 @@ export default function Home() {
     () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
     [cart]
   );
+
+  function saveCartToStorage(newCart: CartItem[]) {
+    Taro.setStorageSync('cart_items', newCart);
+  }
 
   function addToCart(dish: Dish) {
     const token = Taro.getStorageSync('token');
@@ -97,6 +127,7 @@ export default function Home() {
       newCart.push({ dish_id: dish.id, name: dish.name, image: dish.image, price: dish.price, quantity: 1 });
     }
     setCart(newCart);
+    saveCartToStorage(newCart);
     Taro.showToast({ title: '已加入购物车', icon: 'success', duration: 800 });
   }
 
@@ -112,16 +143,19 @@ export default function Home() {
         cartAPI.updateCart(dishId, 0).catch(() => {});
       }
       setCart(newCart);
+      saveCartToStorage(newCart);
     }
   }
 
   function onSearch() {
     if (keyword.trim()) {
+      setIsSearching(true);
       dishAPI.searchDishes(keyword).then(dishes => {
         setDishes(dishes);
         setActiveCategory(0);
       });
     } else {
+      setIsSearching(false);
       loadData();
     }
   }
@@ -177,7 +211,7 @@ export default function Home() {
               <View
                 key={cat.id}
                 className={`category-item ${activeCategory === cat.id ? 'active' : ''}`}
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() => { setIsSearching(false); setKeyword(''); setActiveCategory(cat.id); }}
               >
                 <Text>{cat.name}</Text>
               </View>

@@ -1,6 +1,6 @@
 .recipe-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: #F8F6F0;
   padding-bottom: 120px;
 }
 
@@ -9,7 +9,7 @@
   align-items: center;
   justify-content: center;
   height: 300px;
-  color: #999;
+  color: #BFB8AD;
   font-size: 28px;
 }
 
@@ -19,24 +19,24 @@
   align-items: center;
   justify-content: center;
   height: 300px;
-  color: #999;
+  color: #BFB8AD;
   font-size: 28px;
   .error-btn {
     margin-top: 20px;
-    color: #ff6b35;
+    color: #8DB580;
     font-size: 26px;
   }
 }
 
 .dish-hero {
   height: 350px;
-  background: #fef0e6;
+  background: #F2F5ED;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 80px;
   overflow: hidden;
-  .dish-hero-img { width: 100%; height: 100%; }
+  .dish-hero-img { width: 100%; height: 100%; object-fit: cover; }
 }
 
 .dish-summary {
@@ -46,11 +46,11 @@
   .dish-name {
     font-size: 36px;
     font-weight: 700;
-    color: #333;
+    color: #3D3929;
     display: block;
   }
   .dish-price {
-    color: #ff6b35;
+    color: #C4875A;
     font-size: 32px;
     font-weight: 700;
     margin-top: 8px;
@@ -58,7 +58,7 @@
   }
   .dish-desc {
     font-size: 24px;
-    color: #999;
+    color: #BFB8AD;
     margin-top: 8px;
     display: block;
     line-height: 1.5;
@@ -72,20 +72,20 @@
   .section-title {
     font-size: 28px;
     font-weight: 600;
-    color: #333;
+    color: #3D3929;
     display: block;
     margin-bottom: 16px;
   }
   .recipe-content {
     font-size: 26px;
-    color: #333;
+    color: #3D3929;
     line-height: 1.8;
     white-space: pre-wrap;
     word-break: break-word;
   }
   .recipe-empty {
     font-size: 24px;
-    color: #ccc;
+    color: #D5CFC5;
     text-align: center;
     padding: 40px 0;
     display: block;
@@ -99,18 +99,19 @@
   right: 0;
   height: 100px;
   background: #fff;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #EAE4D8;
   display: flex;
   align-items: center;
   padding: 0 20px;
   padding-bottom: env(safe-area-inset-bottom);
   box-sizing: content-box;
+  box-shadow: 0 -2px 12px rgba(141, 181, 128, 0.08);
 }
 
 .add-cart-btn {
   flex: 1;
   height: 80px;
-  background: linear-gradient(135deg, #ff6b35, #ff8f5e);
+  background: linear-gradient(135deg, #8DB580, #B5D3A7);
   color: #fff;
   border-radius: 40px;
   display: flex;

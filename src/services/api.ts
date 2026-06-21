@@ -61,6 +61,7 @@ export const cartAPI = {
 export const orderAPI = {
   createOrder: (data: { items: { dish_id: number; quantity: number }[]; remark?: string; table_no?: string }) =>
     request('/order/create', { method: 'POST', data }),
+  payOrder: (id: number) => request(`/order/${id}/pay`, { method: 'POST' }),
   getOrders: (status?: number, page = 1) =>
     request(`/order/list?page=${page}&pageSize=10${status !== undefined ? `&status=${status}` : ''}`),
   getOrderDetail: (id: number) => request(`/order/${id}`),
@@ -69,6 +70,8 @@ export const orderAPI = {
 
 // 商家端
 export const merchantAPI = {
+  updateStore: (storeId: number, data: { name: string; phone: string; address: string; notice: string; status: number }) =>
+    request(`/merchant/store/update/${storeId}`, { method: 'POST', data }),
   getStatistics: () => request('/merchant/statistics'),
   getDishes: (storeId = 1) => request(`/merchant/dishes/${storeId}`),
   addDish: (storeId: number, data: any) => {

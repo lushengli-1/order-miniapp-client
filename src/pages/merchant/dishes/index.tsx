@@ -235,8 +235,29 @@ export default function MerchantDishes() {
         <Text className='category-title'>分类管理</Text>
         <View className='category-list'>
           {categories.map(cat => (
-            <View key={cat.id} className='category-tag'>
+            <View key={cat.id} className='category-tag' onClick={() => {
+              Taro.showModal({
+                title: '重命名分类', content: cat.name,
+                editable: true, placeholderText: '分类名称',
+                success: (res) => {
+                  if (res.confirm && res.content && res.content !== cat.name) {
+                    merchantAPI.updateCategory(cat.id, { name: res.content }).then(() => loadData());
+                  }
+                }
+              });
+            }}>
               <Text>{cat.name}</Text>
+              <Text className='category-del' onClick={e => {
+                e.stopPropagation();
+                Taro.showModal({
+                  title: '删除分类', content: `确定删除「${cat.name}」吗？`,
+                  success: (res) => {
+                    if (res.confirm) {
+                      merchantAPI.deleteCategory(cat.id).then(() => loadData());
+                    }
+                  }
+                });
+              }}> ✕</Text>
             </View>
           ))}
           <View className='category-tag add' onClick={() => Taro.showModal({

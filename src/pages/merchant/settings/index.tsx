@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, Input, Switch, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
-import { dishAPI } from '../../../services/api';
+import { dishAPI, merchantAPI } from '../../../services/api';
 import './index.scss';
 
 interface StoreInfo {
@@ -31,8 +31,20 @@ export default function MerchantSettings() {
     setStore(prev => prev ? { ...prev, [field]: value } : null);
   }
 
-  function save() {
-    Taro.showToast({ title: '保存成功（演示）', icon: 'success' });
+  async function save() {
+    if (!store) return;
+    try {
+      await merchantAPI.updateStore(store.id, {
+        name: store.name,
+        phone: store.phone,
+        address: store.address,
+        notice: store.notice,
+        status: store.status
+      });
+      Taro.showToast({ title: '保存成功', icon: 'success' });
+    } catch (err) {
+      Taro.showToast({ title: '保存失败', icon: 'none' });
+    }
   }
 
   if (loading) {

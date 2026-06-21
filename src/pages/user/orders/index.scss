@@ -9,16 +9,16 @@
   background: #fff;
   white-space: nowrap;
   padding: 0 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #EAE4D8;
   .tab-item {
     display: inline-block;
     padding: 24px 30px;
     font-size: 28px;
-    color: #666;
+    color: #8C857B;
     border-bottom: 3px solid transparent;
     &.active {
-      color: #ff6b35;
-      border-bottom-color: #ff6b35;
+      color: #8DB580;
+      border-bottom-color: #8DB580;
       font-weight: 600;
     }
   }
@@ -31,41 +31,53 @@
 
 .order-card {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 24px;
   margin-bottom: 16px;
+  box-shadow: 0 2px 12px rgba(141, 181, 128, 0.06);
   .order-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    .order-no { font-size: 24px; color: #999; }
+    .order-no { font-size: 24px; color: #BFB8AD; }
     .order-status { font-size: 26px; font-weight: 600; }
   }
   .order-body {
     margin-top: 12px;
-    .order-time { font-size: 24px; color: #999; }
-    .order-table { font-size: 24px; color: #666; margin-left: 20px; }
+    .order-time { font-size: 24px; color: #BFB8AD; }
+    .order-table { font-size: 24px; color: #8C857B; margin-left: 20px; }
   }
   .order-footer {
     margin-top: 16px;
     padding-top: 16px;
-    border-top: 1px solid #f5f5f5;
-    text-align: right;
-    .order-amount { font-size: 24px; color: #666; }
-    .amount-price { color: #ff6b35; font-size: 28px; font-weight: 700; }
+    border-top: 1px solid #F0F5EC;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    .order-amount { font-size: 24px; color: #8C857B; }
+    .amount-price { color: #C4875A; font-size: 28px; font-weight: 700; }
+    .pay-btn {
+      background: linear-gradient(135deg, #8DB580, #B5D3A7);
+      color: #fff;
+      padding: 10px 32px;
+      border-radius: 30px;
+      font-size: 26px;
+      font-weight: 600;
+    }
   }
 }
 
 .empty-state {
   text-align: center;
   padding: 100px 0;
-  color: #999;
+  color: #BFB8AD;
   font-size: 28px;
 }
 
 .loading-more {
   text-align: center;
   padding: 20px;
-  color: #999;
+  color: #BFB8AD;
   font-size: 24px;
 }

@@ -1,22 +1,25 @@
-/* 全局样式 */
+/* 全局样式 - 牛油果绿主题 */
 page {
-  background-color: #f5f5f5;
+  background-color: #F8F6F0;
   font-size: 28px;
-  color: #333;
+  color: #3D3929;
   box-sizing: border-box;
 }
 
 /* 通用变量 */
-$primary: #ff6b35;
-$primary-light: #ff8f5e;
-$success: #4caf50;
-$warning: #ff9800;
-$danger: #f44336;
-$text-primary: #333;
-$text-secondary: #666;
-$text-light: #999;
-$border-color: #eee;
-$bg-color: #f5f5f5;
+$primary: #8DB580;
+$primary-light: #B5D3A7;
+$primary-dark: #6B9A5C;
+$accent: #F2C9A8;
+$accent-light: #F8E6D4;
+$success: #7CB342;
+$warning: #E8A87C;
+$danger: #E57373;
+$text-primary: #3D3929;
+$text-secondary: #8C857B;
+$text-light: #BFB8AD;
+$border-color: #EAE4D8;
+$bg-color: #F8F6F0;
 
 /* 通用按钮 */
 .btn-primary {
@@ -48,7 +51,7 @@ $bg-color: #f5f5f5;
   border-radius: 16px;
   margin: 20px;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 12px rgba(141, 181, 128, 0.08);
 }
 
 /* 空状态 */

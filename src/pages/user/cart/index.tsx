@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, Input, Image } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import { cartAPI, orderAPI } from '../../../services/api';
 import { formatPrice, getImageUrl } from '../../../utils';
 import './index.scss';
@@ -24,6 +24,10 @@ export default function Cart() {
     loadPageData();
   }, []);
 
+  useDidShow(() => {
+    loadPageData();
+  });
+
   function loadPageData() {
     const user = Taro.getStorageSync('user');
     if (user?.role === 1) {
@@ -34,16 +38,28 @@ export default function Cart() {
     loadCart();
   }
 
+  function syncToStorage(items: CartItem[]) {
+    Taro.setStorageSync('cart_items', items);
+  }
+
   async function loadCart() {
+    // 先从本地存储加载，确保切换 tab 时能立即看到数据
+    const localCart = Taro.getStorageSync('cart_items') || [];
+    if (localCart.length > 0) {
+      setCartItems(localCart);
+    }
+
+    // 再异步从服务端同步
     try {
       const items = await cartAPI.getCart();
-      setCartItems(items.map(item => ({
+      const mapped = items.map(item => ({
         dish_id: item.dish_id, name: item.name, image: item.image,
         price: item.price, quantity: item.quantity, stock: item.stock
-      })));
+      }));
+      setCartItems(mapped);
+      syncToStorage(mapped);
     } catch (err) {
-      const localCart = Taro.getStorageSync('cart_items') || [];
-      setCartItems(localCart);
+      // 服务端失败，本地存储已加载
     }
   }
 
@@ -59,6 +75,7 @@ export default function Cart() {
       items[idx].quantity = newQty;
     }
     setCartItems(items);
+    syncToStorage(items);
 
     try {
       if (newQty <= 0) {
@@ -77,18 +94,40 @@ export default function Cart() {
 
     setSubmitting(true);
     try {
-      await orderAPI.createOrder({
+      const result = await orderAPI.createOrder({
         items: cartItems.map(i => ({ dish_id: i.dish_id, quantity: i.quantity })),
         table_no: tableNo,
         remark
       });
-      Taro.showToast({ title: '下单成功！', icon: 'success' });
+      const orderId = result.order_id;
       setCartItems([]);
+      Taro.removeStorageSync('cart_items');
       setTableNo('');
       setRemark('');
-      setTimeout(() => {
-        Taro.switchTab({ url: '/pages/user/orders/index' });
-      }, 1000);
+
+      Taro.showModal({
+        title: '🎉 好友免单',
+        content: '因为是好友，本次免单！\n确认后厨师将开始准备～',
+        success: (res) => {
+          if (res.confirm) {
+            orderAPI.payOrder(orderId).then(() => {
+              Taro.showModal({
+                title: '🎉 免单成功！',
+                content: '已通知厨师，请耐心等待～',
+                showCancel: false,
+                success: () => {
+                  Taro.switchTab({ url: '/pages/user/orders/index' });
+                }
+              });
+            }).catch(() => {
+              Taro.showToast({ title: '操作失败', icon: 'none' });
+              Taro.switchTab({ url: '/pages/user/orders/index' });
+            });
+          } else {
+            Taro.switchTab({ url: '/pages/user/orders/index' });
+          }
+        }
+      });
     } catch (err) {
       console.error('下单失败:', err);
     } finally {

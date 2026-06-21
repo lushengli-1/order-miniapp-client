@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import { orderAPI } from '../../../services/api';
-import { formatPrice, getOrderStatusText, getOrderStatusColor } from '../../../utils';
+import { formatPrice, getOrderStatusColor, getUserOrderStatusText } from '../../../utils';
 import './index.scss';
 
 interface Order {
@@ -13,8 +13,6 @@ interface Order {
 const TABS = [
   { key: -1, label: '全部' },
   { key: 0, label: '待支付' },
-  { key: 1, label: '待处理' },
-  { key: 2, label: '制作中' },
   { key: 3, label: '已完成' }
 ];
 
@@ -32,6 +30,10 @@ export default function Orders() {
   useEffect(() => {
     loadPageData();
   }, []);
+
+  useDidShow(() => {
+    loadPageData();
+  });
 
   function loadPageData() {
     const user = Taro.getStorageSync('user');
@@ -76,6 +78,31 @@ export default function Orders() {
     Taro.navigateTo({ url: `/pages/user/order-detail/index?id=${id}` });
   }
 
+  function handlePay(order: Order) {
+    if (order.status !== 0) return;
+    Taro.showModal({
+      title: '🎉 好友免单',
+      content: '因为是好友，本次免单！确认后厨师将开始准备～',
+      success: (res) => {
+        if (res.confirm) {
+          orderAPI.payOrder(order.id).then(() => {
+            Taro.showModal({
+              title: '🎉 免单成功！',
+              content: '已通知厨师，请耐心等待～',
+              showCancel: false,
+              success: () => {
+                const { activeTab: tab, page: pg } = stateRef.current;
+                loadOrders(tab, pg);
+              }
+            });
+          }).catch(() => {
+            Taro.showToast({ title: '操作失败', icon: 'none' });
+          });
+        }
+      }
+    });
+  }
+
   if (isMerchant) {
     return (
       <View className='role-notice'>
@@ -112,7 +139,7 @@ export default function Orders() {
             <View className='order-header'>
               <Text className='order-no'>#{order.order_no.slice(-10)}</Text>
               <Text className='order-status' style={{ color: getOrderStatusColor(order.status) }}>
-                {getOrderStatusText(order.status)}
+                {getUserOrderStatusText(order.status)}
               </Text>
             </View>
             <View className='order-body'>
@@ -120,9 +147,12 @@ export default function Orders() {
               {order.table_no && <Text className='order-table'>桌号: {order.table_no}</Text>}
             </View>
             <View className='order-footer'>
-              <Text className='order-amount'>
+              <View className='order-amount'>
                 合计: <Text className='amount-price'>{formatPrice(order.actual_amount)}</Text>
-              </Text>
+              </View>
+              {order.status === 0 && (
+                <Text className='pay-btn' onClick={e => { e.stopPropagation(); handlePay(order); }}>去支付</Text>
+              )}
             </View>
           </View>
         ))}

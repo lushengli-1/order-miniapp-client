@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, Text } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { orderAPI } from '../../../services/api';
-import { formatPrice, getOrderStatusText, getOrderStatusColor } from '../../../utils';
+import { formatPrice, getOrderStatusColor, getUserOrderStatusText } from '../../../utils';
 import './index.scss';
 
 interface OrderItem {
@@ -34,6 +34,30 @@ export default function OrderDetail() {
     }
   }, []);
 
+  function payOrder() {
+    if (!order || order.status !== 0) return;
+    Taro.showModal({
+      title: '🎉 好友免单',
+      content: '因为是好友，本次免费！\n确定后厨师将开始准备～',
+      success: (res) => {
+        if (res.confirm) {
+          orderAPI.payOrder(order.id).then(() => {
+            Taro.showModal({
+              title: '🎉 免单成功！',
+              content: '已通知厨师，请耐心等待～',
+              showCancel: false,
+              success: () => {
+                setOrder(prev => prev ? { ...prev, status: 1 } : null);
+              }
+            });
+          }).catch(() => {
+            Taro.showToast({ title: '操作失败', icon: 'none' });
+          });
+        }
+      }
+    });
+  }
+
   function cancelOrder() {
     if (!order) return;
     Taro.showModal({
@@ -62,11 +86,17 @@ export default function OrderDetail() {
     <View className='detail-page'>
       <View className='status-section' style={{ backgroundColor: getOrderStatusColor(order.status) }}>
         <Text className='status-icon'>
-          {order.status === 3 ? '✅' : order.status === 4 ? '❌' : '⏳'}
+          {order.status === 0 ? '🎉' : order.status === 3 ? '✅' : order.status === 4 ? '❌' : '⏳'}
         </Text>
-        <Text className='status-text'>{getOrderStatusText(order.status)}</Text>
-        {order.status < 3 && order.status > 0 && (
-          <Text className='status-hint'>商家正在为您准备，请稍候...</Text>
+        <Text className='status-text'>{getUserOrderStatusText(order.status)}</Text>
+        {order.status === 0 && (
+          <Text className='status-hint'>因为是好友，点击下方按钮免单～</Text>
+        )}
+        {order.status === 1 && (
+          <Text className='status-hint'>已通知厨师，请耐心等待～</Text>
+        )}
+        {order.status === 2 && (
+          <Text className='status-hint'>厨师正在准备，请稍候...</Text>
         )}
       </View>
 
@@ -113,6 +143,9 @@ export default function OrderDetail() {
 
       {(order.status === 0 || order.status === 1) && (
         <View className='action-bar'>
+          {order.status === 0 && (
+            <View className='pay-btn' onClick={payOrder}>🎉 去支付</View>
+          )}
           <View className='cancel-btn' onClick={cancelOrder}>取消订单</View>
         </View>
       )}

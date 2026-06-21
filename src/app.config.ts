@@ -13,13 +13,13 @@ export default defineAppConfig({
   ],
   window: {
     backgroundTextStyle: 'light',
-    navigationBarBackgroundColor: '#ff6b35',
-    navigationBarTitleText: '点餐',
-    navigationBarTextStyle: 'white'
+    navigationBarBackgroundColor: '#fff',
+    navigationBarTitleText: '',
+    navigationBarTextStyle: 'black'
   },
   tabBar: {
     color: '#999',
-    selectedColor: '#ff6b35',
+    selectedColor: '#8DB580',
     backgroundColor: '#fff',
     borderStyle: 'black',
     list: [
