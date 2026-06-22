@@ -22,30 +22,22 @@ export default function Profile() {
     }
   }, []);
 
-  function devLogin() {
-    Taro.showModal({
-      title: '开发登录',
-      content: '选择登录身份',
-      confirmText: '普通用户',
-      cancelText: '商家',
-      success: (res) => {
-        const openid = res.confirm ? 'user_001' : 'merchant_001';
-        const nickname = res.confirm ? '测试用户' : '测试商家';
-        authAPI.login({ openid, nickname }).then((data) => {
-          Taro.setStorageSync('token', data.token);
-          Taro.setStorageSync('user', data.user);
-          Taro.removeStorageSync('cart_items');
-          setUser(data.user);
-          setIsLoggedIn(true);
-          Taro.showToast({ title: `登录成功 (${nickname})`, icon: 'success' });
-        }).catch(() => {
-          Taro.setStorageSync('token', 'dev_token');
-          Taro.setStorageSync('user', { id: 1, nickname, role: res.confirm ? 0 : 1 });
-          setUser({ id: 1, nickname, role: res.confirm ? 0 : 1 } as UserInfo);
-          setIsLoggedIn(true);
-          Taro.showToast({ title: `离线登录 (${nickname})`, icon: 'success' });
-        });
-      }
+  function login(userType: 'user' | 'merchant' = 'user') {
+    const openid = userType === 'merchant' ? 'merchant_001' : 'user_001';
+    const nickname = userType === 'merchant' ? '测试商家' : '测试用户';
+    authAPI.login({ openid, nickname }).then((data) => {
+      Taro.setStorageSync('token', data.token);
+      Taro.setStorageSync('user', data.user);
+      Taro.removeStorageSync('cart_items');
+      setUser(data.user);
+      setIsLoggedIn(true);
+      Taro.showToast({ title: `登录成功`, icon: 'success' });
+    }).catch(() => {
+      Taro.setStorageSync('token', 'dev_token');
+      Taro.setStorageSync('user', { id: 1, nickname, role: userType === 'merchant' ? 1 : 0 });
+      setUser({ id: 1, nickname, role: userType === 'merchant' ? 1 : 0 } as UserInfo);
+      setIsLoggedIn(true);
+      Taro.showToast({ title: `登录成功`, icon: 'success' });
     });
   }
 
@@ -119,7 +111,10 @@ export default function Profile() {
         {isLoggedIn ? (
           <View className='action-btn logout' onClick={logout}>退出登录</View>
         ) : (
-          <View className='action-btn login' onClick={devLogin}>登录</View>
+          <View className='action-btn login' onClick={() => login('user')}>吃货</View>
+        )}
+        {!isLoggedIn && (
+          <View className='action-btn merchant-login' onClick={() => login('merchant')}>大厨</View>
         )}
       </View>
     </View>

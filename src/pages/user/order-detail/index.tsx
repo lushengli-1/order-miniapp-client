@@ -8,6 +8,7 @@ import './index.scss';
 interface OrderItem {
   dish_id: number; dish_name: string; dish_image: string;
   price: number; quantity: number;
+  review?: { rating: number; content: string; created_at: string } | null;
 }
 
 interface Order {
@@ -108,6 +109,12 @@ export default function OrderDetail() {
             <View className='item-info'>
               <Text className='item-name'>{item.dish_name}</Text>
               <Text className='item-meta'>{formatPrice(item.price)} x {item.quantity}</Text>
+              {item.review && (
+                <View className='item-review'>
+                  <Text className='review-stars'>{'⭐'.repeat(item.review.rating)}</Text>
+                  {item.review.content && <Text className='review-text'>{item.review.content}</Text>}
+                </View>
+              )}
             </View>
             <Text className='item-total'>{formatPrice(item.price * item.quantity)}</Text>
           </View>

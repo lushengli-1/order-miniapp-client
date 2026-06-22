@@ -54,6 +54,9 @@
 
 .action-section {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   .action-btn {
     text-align: center;
     padding: 24px;
@@ -62,6 +65,13 @@
     &.login {
       background: linear-gradient(135deg, #8DB580, #B5D3A7);
       color: #fff;
+    }
+    &.merchant-login {
+      background: #fff;
+      color: #BFB8AD;
+      border: 1px solid #EAE4D8;
+      font-size: 24px;
+      padding: 16px;
     }
     &.logout {
       background: #fff;

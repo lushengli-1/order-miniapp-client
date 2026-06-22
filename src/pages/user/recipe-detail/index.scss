@@ -90,6 +90,17 @@
     padding: 40px 0;
     display: block;
   }
+  .rating-avg { font-size: 24px; color: #C4875A; font-weight: 600; }
+  .review-item {
+    padding: 16px 0;
+    border-bottom: 1px solid #F0F5EC;
+    &:last-child { border-bottom: none; }
+    .review-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .review-user { font-size: 24px; color: #8C857B; }
+    .review-stars { font-size: 20px; }
+    .review-time { font-size: 20px; color: #D5CFC5; margin-left: auto; }
+    .review-content { font-size: 24px; color: #3D3929; line-height: 1.6; display: block; }
+  }
 }
 
 .recipe-bottom-bar {

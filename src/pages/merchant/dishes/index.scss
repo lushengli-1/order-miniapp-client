@@ -7,6 +7,19 @@
   margin-bottom: 8px;
   .category-title { font-size: 24px; color: #BFB8AD; margin-bottom: 12px; display: block; }
   .category-list { display: flex; flex-wrap: wrap; gap: 12px; }
+  .filter-row {
+    display: flex;
+    align-items: center;
+    padding-bottom: 12px;
+    .filter-label { font-size: 24px; color: #8C857B; flex-shrink: 0; }
+    .filter-picker {
+      display: flex; align-items: center; gap: 8px;
+      background: #F0F5EC; padding: 8px 16px; border-radius: 8px;
+      font-size: 24px; color: #3D3929;
+      .filter-arrow { font-size: 18px; color: #BFB8AD; }
+    }
+  }
+  .category-divider { height: 1px; background: #EAE4D8; margin: 12px 0; }
   .category-tag {
     background: #F0F5EC;
     padding: 8px 20px;
@@ -42,6 +55,7 @@
   .dish-name { font-size: 28px; font-weight: 600; color: #3D3929; display: block; }
   .dish-category { font-size: 22px; color: #BFB8AD; margin-top: 4px; display: block; }
   .dish-price { color: #C4875A; font-size: 26px; font-weight: 700; margin-top: 6px; display: block; }
+  .dish-review { font-size: 20px; color: #C4875A; margin-top: 4px; display: block; text-decoration: underline; text-decoration-style: dotted; }
   .dish-status {
     padding: 6px 16px;
     border-radius: 20px;

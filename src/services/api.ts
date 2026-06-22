@@ -57,6 +57,21 @@ export const cartAPI = {
   clearCart: () => request('/cart/clear', { method: 'POST' })
 };
 
+// 收藏
+export const favoriteAPI = {
+  getFavorites: () => request('/favorites'),
+  addFavorite: (dish_id: number) => request('/favorite/add', { method: 'POST', data: { dish_id } }),
+  removeFavorite: (dish_id: number) => request('/favorite/remove', { method: 'POST', data: { dish_id } })
+};
+
+// 评价
+export const reviewAPI = {
+  addReview: (data: { dish_id: number; order_id: number; rating: number; content?: string }) =>
+    request('/review/add', { method: 'POST', data }),
+  getDishReviews: (dishId: number) => request(`/reviews/${dishId}`),
+  getReviewStats: (storeId = 1) => request(`/reviews/stats/${storeId}`)
+};
+
 // 订单
 export const orderAPI = {
   createOrder: (data: { items: { dish_id: number; quantity: number }[]; remark?: string; table_no?: string }) =>
@@ -100,7 +115,7 @@ export const merchantAPI = {
     }).then(res => JSON.parse(res.data));
   },
   updateDish: (id: number, data: any) => {
-    if (data.image && data.image.startsWith('http')) {
+    if (!data.image || data.image.startsWith('http') || data.image.startsWith('/uploads/')) {
       return request(`/merchant/dish/update/${id}`, {
         method: 'POST',
         data: { ...data, image: undefined }
@@ -137,5 +152,6 @@ export const merchantAPI = {
   getOrders: (status?: number, page = 1) =>
     request(`/merchant/orders?page=${page}&pageSize=10${status !== undefined ? `&status=${status}` : ''}`),
   updateOrderStatus: (id: number, status: number) =>
-    request(`/merchant/order/${id}/status`, { method: 'POST', data: { status } })
+    request(`/merchant/order/${id}/status`, { method: 'POST', data: { status } }),
+  getReviews: () => request('/merchant/reviews')
 };

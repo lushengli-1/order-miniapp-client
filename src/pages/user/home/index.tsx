@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, Input, Image } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
-import { dishAPI, cartAPI } from '../../../services/api';
+import { dishAPI, cartAPI, favoriteAPI, reviewAPI } from '../../../services/api';
 import { formatPrice, getImageUrl } from '../../../utils';
 import './index.scss';
 
@@ -29,6 +29,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [isMerchant, setIsMerchant] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
+  const [showFavorites, setShowFavorites] = useState(false);
+  const [reviewStats, setReviewStats] = useState<Record<number, { count: number; avg: number }>>({});
 
   useEffect(() => {
     loadPageData();
@@ -85,12 +88,48 @@ export default function Home() {
     } catch (err) {
       setLoading(false);
     }
+    loadFavorites();
+    loadReviewStats();
+  }
+
+  async function loadFavorites() {
+    try {
+      const list = await favoriteAPI.getFavorites();
+      setFavorites(new Set(list.map((f: any) => f.id)));
+    } catch (_) {}
+  }
+
+  async function loadReviewStats() {
+    try {
+      const stats = await reviewAPI.getReviewStats();
+      const map: Record<number, { count: number; avg: number }> = {};
+      for (const s of stats) {
+        map[s.dish_id] = { count: s.count, avg: s.avg_rating };
+      }
+      setReviewStats(map);
+    } catch (_) {}
   }
 
   const filteredDishes = useMemo(
-    () => isSearching ? dishes : dishes.filter(d => d.category_id === activeCategory),
-    [dishes, activeCategory, isSearching]
+    () => {
+      if (isSearching) return dishes;
+      if (showFavorites) return dishes.filter(d => favorites.has(d.id));
+      return dishes.filter(d => d.category_id === activeCategory);
+    },
+    [dishes, activeCategory, isSearching, favorites, showFavorites]
   );
+
+  function toggleFavorite(dishId: number) {
+    const newFavs = new Set(favorites);
+    if (newFavs.has(dishId)) {
+      newFavs.delete(dishId);
+      favoriteAPI.removeFavorite(dishId).catch(() => {});
+    } else {
+      newFavs.add(dishId);
+      favoriteAPI.addFavorite(dishId).catch(() => {});
+    }
+    setFavorites(newFavs);
+  }
 
   const cartCount = useMemo(
     () => cart.reduce((sum, item) => sum + item.quantity, 0),
@@ -207,11 +246,17 @@ export default function Home() {
       ) : (
         <View className='content'>
           <ScrollView className='category-sidebar' scrollY>
+            <View
+              className={`category-item ${showFavorites ? 'active' : ''}`}
+              onClick={() => { setIsSearching(false); setKeyword(''); setShowFavorites(true); }}
+            >
+              <Text>❤️ 收藏</Text>
+            </View>
             {categories.map(cat => (
               <View
                 key={cat.id}
-                className={`category-item ${activeCategory === cat.id ? 'active' : ''}`}
-                onClick={() => { setIsSearching(false); setKeyword(''); setActiveCategory(cat.id); }}
+                className={`category-item ${activeCategory === cat.id && !showFavorites ? 'active' : ''}`}
+                onClick={() => { setIsSearching(false); setKeyword(''); setShowFavorites(false); setActiveCategory(cat.id); }}
               >
                 <Text>{cat.name}</Text>
               </View>
@@ -228,20 +273,22 @@ export default function Home() {
                     ) : (
                       <Text className='dish-img-placeholder'>🍽️</Text>
                     )}
+                    <Text className={`fav-btn ${favorites.has(dish.id) ? 'active' : ''}`}
+                      onClick={e => { e.stopPropagation(); toggleFavorite(dish.id); }}>
+                      {favorites.has(dish.id) ? '💗' : '♡'}
+                    </Text>
                   </View>
                   <View className='dish-info'>
-                    <View className='dish-name'>{dish.name}
-                      <Text className='recipe-link' onClick={() => Taro.navigateTo({ url: `/pages/user/recipe-detail/index?id=${dish.id}` })}>查看做法</Text>
-                    </View>
+                    <Text className='dish-name'>{dish.name}</Text>
                     <Text className='dish-desc'>{dish.description}</Text>
-                    <Text className='dish-sales'>月售{dish.sales}{dish.unit}</Text>
+                    <View className='dish-meta'>
+                      <Text className='recipe-link' onClick={() => Taro.navigateTo({ url: `/pages/user/recipe-detail/index?id=${dish.id}` })}>📖 做法</Text>
+                      {reviewStats[dish.id] && (
+                        <Text className='meta-rating' onClick={() => Taro.navigateTo({ url: `/pages/user/recipe-detail/index?id=${dish.id}` })}>⭐ {reviewStats[dish.id].avg}</Text>
+                      )}
+                    </View>
                     <View className='dish-bottom'>
-                      <View className='dish-price'>
-                        <Text className='price-current'>{formatPrice(dish.price)}</Text>
-                        {dish.original_price > 0 && (
-                          <Text className='price-original'>{formatPrice(dish.original_price)}</Text>
-                        )}
-                      </View>
+                      <Text className='price-current'>{formatPrice(dish.price)}</Text>
                       <View className='qty-control'>
                         {cart.some(c => c.dish_id === dish.id) && (
                           <Text className='qty-btn' onClick={() => removeFromCart(dish.id)}>-</Text>

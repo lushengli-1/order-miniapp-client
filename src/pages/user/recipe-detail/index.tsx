@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
-import { dishAPI, cartAPI } from '../../../services/api';
+import { dishAPI, cartAPI, reviewAPI } from '../../../services/api';
 import { formatPrice, getImageUrl } from '../../../utils';
 import './index.scss';
 
@@ -15,6 +15,8 @@ export default function RecipeDetail() {
   const [dish, setDish] = useState<DishDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [avgRating, setAvgRating] = useState(0);
 
   useEffect(() => {
     loadDish();
@@ -32,6 +34,12 @@ export default function RecipeDetail() {
       const dish = await dishAPI.getDishDetail(Number(id));
       setDish(dish);
       setLoading(false);
+      // 加载评价
+      try {
+        const result = await reviewAPI.getDishReviews(Number(id));
+        setReviews(result.list || []);
+        setAvgRating(result.avg_rating || 0);
+      } catch (_) {}
     } catch (err) {
       setLoading(false);
       setError('菜品不存在');
@@ -86,6 +94,26 @@ export default function RecipeDetail() {
             <Text className='recipe-content'>{dish.recipe}</Text>
           ) : (
             <Text className='recipe-empty'>暂无做法说明</Text>
+          )}
+        </View>
+
+        <View className='recipe-section'>
+          <Text className='section-title'>
+            ⭐ 评价 {avgRating > 0 ? <Text className='rating-avg'>{avgRating}</Text> : ''}
+          </Text>
+          {reviews.length === 0 ? (
+            <Text className='recipe-empty'>暂无评价</Text>
+          ) : (
+            reviews.map(r => (
+              <View key={r.id} className='review-item'>
+                <View className='review-header'>
+                  <Text className='review-user'>{r.nickname || '匿名用户'}</Text>
+                  <Text className='review-stars'>{'⭐'.repeat(r.rating)}</Text>
+                  <Text className='review-time'>{r.created_at?.slice(0, 10)}</Text>
+                </View>
+                {r.content && <Text className='review-content'>{r.content}</Text>}
+              </View>
+            ))
           )}
         </View>
       </ScrollView>

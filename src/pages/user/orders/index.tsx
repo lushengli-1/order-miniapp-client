@@ -7,7 +7,7 @@ import './index.scss';
 
 interface Order {
   id: number; order_no: string; total_amount: number; actual_amount: number;
-  status: number; created_at: string; table_no: string;
+  status: number; created_at: string; table_no: string; reviewed?: boolean;
 }
 
 const TABS = [
@@ -76,6 +76,78 @@ export default function Orders() {
 
   function goToDetail(id: number) {
     Taro.navigateTo({ url: `/pages/user/order-detail/index?id=${id}` });
+  }
+
+  function showActionSheet(items: string[]): Promise<number> {
+    return new Promise((resolve) => {
+      Taro.showActionSheet({
+        itemList: items,
+        success: (res) => resolve(res.tapIndex),
+        fail: () => resolve(-1)
+      });
+    });
+  }
+
+  function showReviewModal(title: string, rating: number, content: string): Promise<{ confirm: boolean; content: string }> {
+    return new Promise((resolve) => {
+      Taro.showModal({
+        title,
+        content: `评分：${'⭐'.repeat(rating)}（1-5星）\n\n评价内容：${content || '（选填）'}`,
+        editable: true,
+        placeholderText: '说说这道菜怎么样...',
+        success: (res) => resolve({ confirm: res.confirm || false, content: res.content || '' }),
+        fail: () => resolve({ confirm: false, content: '' })
+      });
+    });
+  }
+
+  async function handleReview(order: Order) {
+    if (order.status !== 3) return;
+    try {
+      const detail = await orderAPI.getOrderDetail(order.id);
+      const items = detail.items || [];
+      if (items.length === 0) {
+        Taro.showToast({ title: '没有可评价的菜品', icon: 'none' });
+        return;
+      }
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+
+        // 先选评分
+        const idx = await showActionSheet(['⭐ 1分', '⭐⭐ 2分', '⭐⭐⭐ 3分', '⭐⭐⭐⭐ 4分', '⭐⭐⭐⭐⭐ 5分']);
+        if (idx < 0) return; // 取消
+        const rating = idx + 1;
+
+        // 弹评价框
+        const modalRes = await showReviewModal(`评价 - ${item.dish_name}`, rating, '');
+        if (!modalRes.confirm) return; // 取消
+
+        try {
+          await reviewAPI.addReview({
+            dish_id: item.dish_id,
+            order_id: order.id,
+            rating,
+            content: modalRes.content
+          });
+          // 评价成功，继续下一个
+        } catch (e: any) {
+          const msg = typeof e === 'object' && e !== null ? (e.message || '') : '';
+          if (msg.includes('已评价')) {
+            // 已评价过，跳过
+          } else {
+            Taro.showToast({ title: msg || '评价失败', icon: 'none' });
+            return;
+          }
+        }
+      }
+
+      // 全部完成
+      Taro.showToast({ title: '全部评价完成', icon: 'success', duration: 1500 });
+      setTimeout(() => Taro.navigateTo({ url: `/pages/user/order-detail/index?id=${order.id}` }), 1500);
+    } catch (err) {
+      Taro.showToast({ title: '获取订单失败', icon: 'none' });
+    }
   }
 
   function handlePay(order: Order) {
@@ -152,6 +224,11 @@ export default function Orders() {
               </View>
               {order.status === 0 && (
                 <Text className='pay-btn' onClick={e => { e.stopPropagation(); handlePay(order); }}>去支付</Text>
+              )}
+              {order.status === 3 && (
+                order.reviewed
+                  ? <Text className='reviewed-btn'>已评价</Text>
+                  : <Text className='review-btn' onClick={e => { e.stopPropagation(); handleReview(order); }}>评价</Text>
               )}
             </View>
           </View>

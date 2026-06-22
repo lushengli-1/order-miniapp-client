@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Input, Picker, Switch, Textarea, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
-import { merchantAPI } from '../../../services/api';
+import { merchantAPI, reviewAPI } from '../../../services/api';
 import { formatPrice, getImageUrl } from '../../../utils';
 import './index.scss';
 
@@ -34,6 +34,8 @@ export default function MerchantDishes() {
   const [showForm, setShowForm] = useState(false);
   const [editingDish, setEditingDish] = useState<Dish | null>(null);
   const [form, setForm] = useState({ ...DEFAULT_FORM });
+  const [dishReviews, setDishReviews] = useState<Record<number, { count: number; avg: number }>>({});
+  const [filterCategoryId, setFilterCategoryId] = useState(0);
 
   useEffect(() => {
     loadData();
@@ -49,6 +51,23 @@ export default function MerchantDishes() {
       setDishes(dishes);
       setCategories(categories);
       setLoading(false);
+
+      // 加载评价数据
+      try {
+        const reviews = await merchantAPI.getReviews();
+        const byDish: Record<number, { ratings: number[] }> = {};
+        for (const r of reviews) {
+          if (!byDish[r.dish_id]) byDish[r.dish_id] = { ratings: [] };
+          byDish[r.dish_id].ratings.push(r.rating);
+        }
+        const summary: Record<number, { count: number; avg: number }> = {};
+        for (const [dishId, data] of Object.entries(byDish)) {
+          const ratings = data.ratings;
+          const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+          summary[Number(dishId)] = { count: ratings.length, avg: Math.round(avg * 10) / 10 };
+        }
+        setDishReviews(summary);
+      } catch (_) {}
     } catch (err) {
       setLoading(false);
     }
@@ -123,6 +142,28 @@ export default function MerchantDishes() {
     });
   }
 
+  async function showDishReviews(dish: Dish) {
+    try {
+      const result = await reviewAPI.getDishReviews(dish.id);
+      const list = result.list || [];
+      if (list.length === 0) {
+        Taro.showToast({ title: '暂无评价', icon: 'none' });
+        return;
+      }
+      let content = list.map((r, i) =>
+        `${i + 1}. ${r.nickname || '匿名'}  ${'⭐'.repeat(r.rating)}  ${r.created_at?.slice(0, 10) || ''}\n${r.content || ''}`
+      ).join('\n\n');
+      Taro.showModal({
+        title: `${dish.name} - 评价`,
+        content: content,
+        showCancel: false,
+        confirmText: '关闭'
+      });
+    } catch (_) {
+      Taro.showToast({ title: '获取评价失败', icon: 'none' });
+    }
+  }
+
   function onCategoryChange(e: any) {
     const idx = e.detail.value;
     const category = categories[idx];
@@ -138,6 +179,9 @@ export default function MerchantDishes() {
   }
 
   const categoryIndex = categories.findIndex(c => c.id === form.category_id);
+  const filteredDishes = filterCategoryId === 0
+    ? dishes
+    : dishes.filter(d => d.category_id === filterCategoryId);
 
   if (showForm) {
     return (
@@ -232,6 +276,24 @@ export default function MerchantDishes() {
   return (
     <View className='merchant-layout'>
       <View className='category-bar'>
+        <View className='filter-row'>
+          <Text className='filter-label'>筛选：</Text>
+          <Picker
+            mode='selector'
+            range={['全部', ...categories.map(c => c.name)]}
+            value={filterCategoryId === 0 ? 0 : categories.findIndex(c => c.id === filterCategoryId) + 1}
+            onChange={e => {
+              const idx = e.detail.value;
+              setFilterCategoryId(idx === 0 ? 0 : categories[idx - 1]?.id || 0);
+            }}
+          >
+            <View className='filter-picker'>
+              <Text>{filterCategoryId === 0 ? '全部' : categories.find(c => c.id === filterCategoryId)?.name || '全部'}</Text>
+              <Text className='filter-arrow'>▼</Text>
+            </View>
+          </Picker>
+        </View>
+        <View className='category-divider' />
         <Text className='category-title'>分类管理</Text>
         <View className='category-list'>
           {categories.map(cat => (
@@ -273,7 +335,7 @@ export default function MerchantDishes() {
       </View>
 
       <ScrollView className='dish-list' scrollY>
-        {dishes.map(dish => (
+        {filteredDishes.map(dish => (
           <View key={dish.id} className='dish-card'>
             <View className='dish-main'>
               <View className='dish-img'>
@@ -287,6 +349,11 @@ export default function MerchantDishes() {
                 <Text className='dish-name'>{dish.name}</Text>
                 <Text className='dish-category'>{dish.category_name}{dish.recipe ? ' 📝有做法' : ''}</Text>
                 <Text className='dish-price'>{formatPrice(dish.price)}</Text>
+                {dishReviews[dish.id] && (
+                  <Text className='dish-review' onClick={() => showDishReviews(dish)}>
+                    ⭐ {dishReviews[dish.id].avg} ({dishReviews[dish.id].count}条评价)
+                  </Text>
+                )}
               </View>
               <View className={`dish-status ${dish.status === 1 ? 'on' : 'off'}`}>
                 {dish.status === 1 ? '上架' : '下架'}
