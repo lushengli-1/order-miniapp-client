@@ -2,7 +2,7 @@
   "miniprogramRoot": "./dist",
   "projectname": "点餐小程序",
   "description": "美食点餐小程序",
-  "appid": "你的微信小程序appid",
+  "appid": "wx156fdd671c10c3c9",
   "setting": {
     "urlCheck": false,
     "es6": true,
