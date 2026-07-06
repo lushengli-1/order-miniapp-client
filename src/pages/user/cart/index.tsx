@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { View, Text, ScrollView, Input, Image } from '@tarojs/components';
+import { View, Text, ScrollView, Image } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import { cartAPI, orderAPI } from '../../../services/api';
 import { formatPrice, getImageUrl } from '../../../utils';
+import SafeImage from '../../../components/SafeImage';
+import { useNavBarHeight } from '../../../hooks/useNavBarHeight';
 import './index.scss';
 
 interface CartItem {
@@ -11,21 +13,29 @@ interface CartItem {
 }
 
 export default function Cart() {
+  const storeTopMargin = useNavBarHeight();
+
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [tableNo, setTableNo] = useState('');
-  const [remark, setRemark] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [isMerchant, setIsMerchant] = useState(false);
+  const [needLogin, setNeedLogin] = useState(!Taro.getStorageSync('token'));
 
   const totalAmount = useMemo(() => cartItems.reduce((s, i) => s + i.price * i.quantity, 0), [cartItems]);
   const totalCount = useMemo(() => cartItems.reduce((s, i) => s + i.quantity, 0), [cartItems]);
 
   useEffect(() => {
+    if (needLogin) return;
     loadPageData();
   }, []);
 
   useDidShow(() => {
-    loadPageData();
+    const token = Taro.getStorageSync('token');
+    if (token) {
+      setNeedLogin(false);
+      loadPageData();
+    } else {
+      setNeedLogin(true);
+    }
   });
 
   function loadPageData() {
@@ -87,6 +97,14 @@ export default function Cart() {
   }
 
   async function submitOrder() {
+    if (!Taro.getStorageSync('token')) {
+      Taro.showModal({
+        title: '提示',
+        content: '请先登录',
+        success: (res) => { if (res.confirm) Taro.switchTab({ url: '/pages/user/profile/index' }); }
+      });
+      return;
+    }
     if (cartItems.length === 0) {
       Taro.showToast({ title: '购物车为空', icon: 'none' });
       return;
@@ -95,15 +113,11 @@ export default function Cart() {
     setSubmitting(true);
     try {
       const result = await orderAPI.createOrder({
-        items: cartItems.map(i => ({ dish_id: i.dish_id, quantity: i.quantity })),
-        table_no: tableNo,
-        remark
+        items: cartItems.map(i => ({ dish_id: i.dish_id, quantity: i.quantity }))
       });
       const orderId = result.order_id;
       setCartItems([]);
       Taro.removeStorageSync('cart_items');
-      setTableNo('');
-      setRemark('');
 
       Taro.showModal({
         title: '🎉 好友免单',
@@ -135,11 +149,31 @@ export default function Cart() {
     }
   }
 
+  if (needLogin) {
+    return (
+      <View className='cart-page' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+        <View className='custom-nav' style={{ height: storeTopMargin }}>
+          <Text className='custom-nav-title'>购物车</Text>
+        </View>
+        <View className='empty-cart'>
+          <View className='empty-card'>
+            <Text className='empty-icon'>👤</Text>
+            <Text className='empty-text'>请先登录</Text>
+            <Text className='empty-hint'>登录后才能查看购物车</Text>
+            <View className='empty-btn' onClick={() => Taro.switchTab({ url: '/pages/user/profile/index' })}>
+              去登录
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   if (isMerchant) {
     return (
       <View className='role-notice'>
-        <Text className='role-notice-icon'>📊</Text>
-        <Text className='role-notice-title'>当前为商家身份</Text>
+        <Text className='role-notice-icon'>🧑‍🍳</Text>
+        <Text className='role-notice-title'>当前为大厨身份</Text>
         <Text className='role-notice-desc'>请前往"我的"页面管理店铺</Text>
         <View className='role-notice-btn' onClick={() => Taro.switchTab({ url: '/pages/user/profile/index' })}>
           前往"我的"
@@ -149,63 +183,57 @@ export default function Cart() {
   }
 
   return (
-    <View className='cart-page'>
-      {cartItems.length === 0 ? (
-        <View className='empty-cart'>
-          <Text className='empty-icon'>🛒</Text>
-          <Text className='empty-text'>购物车是空的</Text>
-          <View className='go-home-btn' onClick={() => Taro.switchTab({ url: '/pages/user/home/index' })}>
-            去点餐
-          </View>
-        </View>
-      ) : (
-        <>
+    <View className='cart-page' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+      <View className='custom-nav' style={{ height: storeTopMargin }}>
+        <Text className='custom-nav-title'>购物车</Text>
+      </View>
+
+      {cartItems.length > 0 && (
+        <View className='cart-content' style={{ maxHeight: `calc(100vh - ${storeTopMargin}px - 80px - 24px)` }}>
           <ScrollView className='cart-list' scrollY>
             {cartItems.map(item => (
               <View key={item.dish_id} className='cart-item'>
-                <View className='item-img'>
-                  {item.image ? (
-                    <Image className='item-img-content' src={getImageUrl(item.image)} mode='aspectFill' />
-                  ) : (
-                    <Text>🍽️</Text>
-                  )}
+                  <View className='item-img'>
+                    {item.image ? (
+                      <SafeImage className='item-img-content' src={item.image.split(',')[0]} mode='aspectFill' />
+                    ) : (
+                      <Text>🍽️</Text>
+                    )}
+                  </View>
+                  <View className='item-info'>
+                    <Text className='item-name'>{item.name}</Text>
+                    <Text className='item-price'>{formatPrice(item.price)}</Text>
+                  </View>
+                  <View className='qty-control'>
+                    <Text className='qty-btn' onClick={() => updateQuantity(item.dish_id, -1)}>-</Text>
+                    <Text className='qty-num'>{item.quantity}</Text>
+                    <Text className='qty-btn primary' onClick={() => updateQuantity(item.dish_id, 1)}>+</Text>
+                  </View>
                 </View>
-                <View className='item-info'>
-                  <Text className='item-name'>{item.name}</Text>
-                  <Text className='item-price'>{formatPrice(item.price)}</Text>
-                </View>
-                <View className='qty-control'>
-                  <Text className='qty-btn' onClick={() => updateQuantity(item.dish_id, -1)}>-</Text>
-                  <Text className='qty-num'>{item.quantity}</Text>
-                  <Text className='qty-btn primary' onClick={() => updateQuantity(item.dish_id, 1)}>+</Text>
-                </View>
-              </View>
-            ))}
+              ))}
           </ScrollView>
-
-          <View className='order-info'>
-            <View className='info-row'>
-              <Text className='info-label'>桌号</Text>
-              <Input className='info-input' placeholder='请输入桌号（选填）' value={tableNo}
-                onInput={e => setTableNo(e.detail.value)} />
-            </View>
-            <View className='info-row'>
-              <Text className='info-label'>备注</Text>
-              <Input className='info-input' placeholder='口味、要求等（选填）' value={remark}
-                onInput={e => setRemark(e.detail.value)} />
-            </View>
+        </View>
+      )}
+      {cartItems.length === 0 && (
+        <View className='empty-cart'>
+          <View className='empty-card'>
+            <Text className='empty-icon'>🛒</Text>
+            <Text className='empty-text'>购物车是空的</Text>
+            <Text className='empty-hint'>去首页点些好吃的吧～</Text>
           </View>
+        </View>
+      )}
 
-          <View className='bottom-bar'>
-            <View className='total'>
-              <Text className='total-label'>合计: </Text>
-              <Text className='total-amount'>{formatPrice(totalAmount)}</Text>
-            </View>
-            <View className={`submit-btn ${submitting ? 'disabled' : ''}`} onClick={submitOrder}>
-              {submitting ? '提交中...' : `去支付 ¥${totalAmount.toFixed(2)}`}
-            </View>
+      {cartItems.length > 0 && (
+        <View className='cart-bottom'>
+          <View className='total'>
+            <Text className='total-label'>合计: </Text>
+            <Text className='total-amount'>{formatPrice(totalAmount)}</Text>
           </View>
-        </>
+          <View className={`submit-btn ${submitting ? 'disabled' : ''}`} onClick={submitOrder}>
+            {submitting ? '提交中...' : `去支付 ¥${totalAmount.toFixed(2)}`}
+          </View>
+        </View>
       )}
     </View>
   );

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { View, Text, Input, Switch, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { dishAPI, merchantAPI } from '../../../services/api';
+import { getImageUrl } from '../../../utils';
+import { useNavBarHeight } from '../../../hooks/useNavBarHeight';
 import './index.scss';
 
 interface StoreInfo {
@@ -10,18 +12,27 @@ interface StoreInfo {
 }
 
 const NAV_ITEMS = [
-  { key: 'dashboard', label: '营业概览', icon: '📊', path: '/pages/merchant/dashboard/index' },
-  { key: 'orders', label: '订单管理', icon: '📦', path: '/pages/merchant/orders/index' },
-  { key: 'dishes', label: '菜品管理', icon: '🍽️', path: '/pages/merchant/dishes/index' },
-  { key: 'settings', label: '店铺设置', icon: '⚙️', path: '/pages/merchant/settings/index' },
+  { key: 'dashboard', label: '营业概览', icon: '📈', path: '/pages/merchant/dashboard/index' },
+  { key: 'orders', label: '订单管理', icon: '🧾', path: '/pages/merchant/orders/index' },
+  { key: 'dishes', label: '菜品管理', icon: '🥘', path: '/pages/merchant/dishes/index' },
+  { key: 'settings', label: '店铺设置', icon: '🔧', path: '/pages/merchant/settings/index' },
 ];
 
 export default function MerchantSettings() {
-  const [store, setStore] = useState<StoreInfo | null>(null);
-  const [loading, setLoading] = useState(true);
+  const storeTopMargin = useNavBarHeight();
 
   useEffect(() => {
-    dishAPI.getStoreInfo().then(store => {
+    const user = Taro.getStorageSync('user');
+    if (!user || user.role !== 1) Taro.redirectTo({ url: '/pages/user/profile/index' });
+  }, []);
+
+  const storeId = (Taro.getStorageSync('user') as any)?.store_id;
+  const [store, setStore] = useState<StoreInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const effectiveStoreId = storeId || undefined;
+
+  useEffect(() => {
+    dishAPI.getStoreInfo(effectiveStoreId).then(store => {
       setStore(store);
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -34,7 +45,7 @@ export default function MerchantSettings() {
   async function save() {
     if (!store) return;
     try {
-      await merchantAPI.updateStore(store.id, {
+      await merchantAPI.updateStore(storeId, {
         name: store.name,
         phone: store.phone,
         address: store.address,
@@ -49,7 +60,13 @@ export default function MerchantSettings() {
 
   if (loading) {
     return (
-      <View className='merchant-layout'>
+      <View className='merchant-layout' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+        <View className='custom-nav' style={{ height: storeTopMargin }}>
+          <View className='nav-back' onClick={() => Taro.navigateBack()}>
+            <Text className='nav-back-icon'>‹</Text>
+          </View>
+          <Text className='custom-nav-title'>店铺设置</Text>
+        </View>
         <View className='loading'><Text>加载中...</Text></View>
         <View className='merchant-nav'>
           {NAV_ITEMS.map(item => (
@@ -65,7 +82,13 @@ export default function MerchantSettings() {
   }
 
   return (
-    <View className='merchant-layout'>
+    <View className='merchant-layout' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+      <View className='custom-nav' style={{ height: storeTopMargin }}>
+        <View className='nav-back' onClick={() => Taro.navigateBack()}>
+          <Text className='nav-back-icon'>‹</Text>
+        </View>
+        <Text className='custom-nav-title'>店铺设置</Text>
+      </View>
       <ScrollView className='settings-page'>
         <View className='section'>
           <View className='form-group'>

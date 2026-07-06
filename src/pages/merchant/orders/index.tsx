@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { View, Text, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { merchantAPI } from '../../../services/api';
-import { formatPrice, getOrderStatusText, getOrderStatusColor } from '../../../utils';
+import { formatPrice, getImageUrl, getOrderStatusText, getOrderStatusColor } from '../../../utils';
+import { useNavBarHeight } from '../../../hooks/useNavBarHeight';
 import './index.scss';
 
 interface OrderItem {
@@ -18,13 +19,20 @@ const TABS = [
 ];
 
 const NAV_ITEMS = [
-  { key: 'dashboard', label: '营业概览', icon: '📊', path: '/pages/merchant/dashboard/index' },
-  { key: 'orders', label: '订单管理', icon: '📦', path: '/pages/merchant/orders/index' },
-  { key: 'dishes', label: '菜品管理', icon: '🍽️', path: '/pages/merchant/dishes/index' },
-  { key: 'settings', label: '店铺设置', icon: '⚙️', path: '/pages/merchant/settings/index' },
+  { key: 'dashboard', label: '营业概览', icon: '📈', path: '/pages/merchant/dashboard/index' },
+  { key: 'orders', label: '订单管理', icon: '🧾', path: '/pages/merchant/orders/index' },
+  { key: 'dishes', label: '菜品管理', icon: '🥘', path: '/pages/merchant/dishes/index' },
+  { key: 'settings', label: '店铺设置', icon: '🔧', path: '/pages/merchant/settings/index' },
 ];
 
 export default function MerchantOrders() {
+  const storeTopMargin = useNavBarHeight();
+
+  useEffect(() => {
+    const user = Taro.getStorageSync('user');
+    if (!user || user.role !== 1) Taro.redirectTo({ url: '/pages/user/profile/index' });
+  }, []);
+
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -61,7 +69,13 @@ export default function MerchantOrders() {
   }
 
   return (
-    <View className='merchant-layout'>
+    <View className='merchant-layout' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+      <View className='custom-nav' style={{ height: storeTopMargin }}>
+        <View className='nav-back' onClick={() => Taro.navigateBack()}>
+          <Text className='nav-back-icon'>‹</Text>
+        </View>
+        <Text className='custom-nav-title'>订单管理</Text>
+      </View>
       <View className='merchant-main'>
         <ScrollView className='tabs' scrollX showScrollbar={false}>
           {TABS.map((tab, idx) => (
@@ -75,42 +89,50 @@ export default function MerchantOrders() {
           ))}
         </ScrollView>
 
-        <ScrollView className='order-list' scrollY>
-          {orders.map(order => (
-            <View key={order.id} className='order-card'>
-              <View className='order-header'>
-                <View>
-                  <Text className='user-name'>{order.nickname || '用户'}</Text>
-                  {order.table_no && <Text className='table-no'>桌号: {order.table_no}</Text>}
+        {orders.length > 0 ? (
+          <ScrollView className='order-list' scrollY style={{ maxHeight: `calc(100vh - ${storeTopMargin}px - 130px)` }}>
+            {orders.map(order => (
+              <View key={order.id} className='order-card'>
+                <View className='order-header'>
+                  <View>
+                    <Text className='user-name'>{order.nickname || '用户'}</Text>
+                    {order.table_no && <Text className='table-no'>桌号: {order.table_no}</Text>}
+                  </View>
+                  <Text className='order-status' style={{ color: getOrderStatusColor(order.status) }}>
+                    {getOrderStatusText(order.status)}
+                  </Text>
                 </View>
-                <Text className='order-status' style={{ color: getOrderStatusColor(order.status) }}>
-                  {getOrderStatusText(order.status)}
-                </Text>
-              </View>
-              <Text className='order-no'>#{order.order_no}</Text>
-              <Text className='order-time'>{order.created_at}</Text>
-              {order.remark && <Text className='order-remark'>备注: {order.remark}</Text>}
-              <View className='order-footer'>
-                <Text className='order-amount'>{formatPrice(order.actual_amount)}</Text>
-                <View className='action-btns'>
-                  {order.status === 1 && (
-                    <View className='action-btn accept' onClick={() => updateStatus(order.id, 2)}>
-                      接单
-                    </View>
-                  )}
-                  {order.status === 2 && (
-                    <View className='action-btn complete' onClick={() => updateStatus(order.id, 3)}>
-                      完成
-                    </View>
-                  )}
+                <Text className='order-no'>#{order.order_no}</Text>
+                <Text className='order-time'>{order.created_at}</Text>
+                {order.remark && <Text className='order-remark'>备注: {order.remark}</Text>}
+                <View className='order-footer'>
+                  <Text className='order-amount'>{formatPrice(order.actual_amount)}</Text>
+                  <View className='action-btns'>
+                    {order.status === 1 && (
+                      <View className='action-btn accept' onClick={() => updateStatus(order.id, 2)}>
+                        接单
+                      </View>
+                    )}
+                    {order.status === 2 && (
+                      <View className='action-btn complete' onClick={() => updateStatus(order.id, 3)}>
+                        完成
+                      </View>
+                    )}
+                  </View>
                 </View>
               </View>
+            ))}
+            <View style='height: 80px'></View>
+          </ScrollView>
+        ) : !loading && (
+          <View className='empty-state'>
+            <View className='empty-card'>
+              <Text className='empty-icon'>📋</Text>
+              <Text className='empty-text'>暂无订单</Text>
+              <Text className='empty-hint'>新的订单会在这里显示</Text>
             </View>
-          ))}
-          {orders.length === 0 && !loading && (
-            <View className='empty'><Text>暂无订单</Text></View>
-          )}
-        </ScrollView>
+          </View>
+        )}
       </View>
 
       <View className='merchant-nav'>

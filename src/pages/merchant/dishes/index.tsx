@@ -3,6 +3,8 @@ import { View, Text, ScrollView, Input, Picker, Switch, Textarea, Image } from '
 import Taro from '@tarojs/taro';
 import { merchantAPI, reviewAPI } from '../../../services/api';
 import { formatPrice, getImageUrl } from '../../../utils';
+import SafeImage from '../../../components/SafeImage';
+import { useNavBarHeight } from '../../../hooks/useNavBarHeight';
 import './index.scss';
 
 interface Category {
@@ -17,17 +19,25 @@ interface Dish {
 
 const DEFAULT_FORM = {
   category_id: 0, name: '', price: '', original_price: '', description: '', recipe: '',
-  stock: '999', unit: '份', is_recommend: 0, status: 1, image: ''
+  stock: '999', unit: '份', is_recommend: 0, status: 1, images: [] as string[]
 };
 
 const NAV_ITEMS = [
-  { key: 'dashboard', label: '营业概览', icon: '📊', path: '/pages/merchant/dashboard/index' },
-  { key: 'orders', label: '订单管理', icon: '📦', path: '/pages/merchant/orders/index' },
-  { key: 'dishes', label: '菜品管理', icon: '🍽️', path: '/pages/merchant/dishes/index' },
-  { key: 'settings', label: '店铺设置', icon: '⚙️', path: '/pages/merchant/settings/index' },
+  { key: 'dashboard', label: '营业概览', icon: '📈', path: '/pages/merchant/dashboard/index' },
+  { key: 'orders', label: '订单管理', icon: '🧾', path: '/pages/merchant/orders/index' },
+  { key: 'dishes', label: '菜品管理', icon: '🥘', path: '/pages/merchant/dishes/index' },
+  { key: 'settings', label: '店铺设置', icon: '🔧', path: '/pages/merchant/settings/index' },
 ];
 
 export default function MerchantDishes() {
+  const storeTopMargin = useNavBarHeight();
+
+  useEffect(() => {
+    const user = Taro.getStorageSync('user');
+    if (!user || user.role !== 1) Taro.redirectTo({ url: '/pages/user/profile/index' });
+  }, []);
+
+  const storeId = (Taro.getStorageSync('user') as any)?.store_id;
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
@@ -45,8 +55,8 @@ export default function MerchantDishes() {
     setLoading(true);
     try {
       const [dishes, categories] = await Promise.all([
-        merchantAPI.getDishes(),
-        merchantAPI.getCategories()
+        merchantAPI.getDishes(storeId),
+        merchantAPI.getCategories(storeId)
       ]);
       setDishes(dishes);
       setCategories(categories);
@@ -76,10 +86,11 @@ export default function MerchantDishes() {
   function showAddForm() {
     setShowForm(true);
     setEditingDish(null);
-    setForm({ ...DEFAULT_FORM, category_id: categories[0]?.id || 0 });
+    setForm({ ...DEFAULT_FORM, category_id: categories[0]?.id || 0, images: [] });
   }
 
   function showEditForm(dish: Dish) {
+    const existingImages = dish.image ? dish.image.split(',').filter(Boolean) : [];
     setShowForm(true);
     setEditingDish(dish);
     setForm({
@@ -93,7 +104,7 @@ export default function MerchantDishes() {
       unit: dish.unit,
       is_recommend: dish.is_recommend,
       status: dish.status,
-      image: dish.image
+      images: existingImages
     });
   }
 
@@ -108,16 +119,18 @@ export default function MerchantDishes() {
         ...form,
         category_id: form.category_id || categories[0]?.id || 0
       };
+      const apiData = { ...data, image: data.images };
+      delete (apiData as any).images;
       if (editingDish) {
-        await merchantAPI.updateDish(editingDish.id, data);
+        await merchantAPI.updateDish(editingDish.id, apiData);
         Taro.showToast({ title: '更新成功', icon: 'success' });
       } else {
-        await merchantAPI.addDish(1, data);
+        await merchantAPI.addDish(storeId, apiData);
         Taro.showToast({ title: '添加成功', icon: 'success' });
       }
       setShowForm(false);
       setEditingDish(null);
-      setForm({ ...DEFAULT_FORM });
+      setForm({ ...DEFAULT_FORM, images: [] });
       loadData();
     } catch (err) {
       console.error(err);
@@ -173,9 +186,13 @@ export default function MerchantDishes() {
   }
 
   function chooseImage() {
-    Taro.chooseImage({ count: 1 }).then(res => {
-      setForm(prev => ({ ...prev, image: res.tempFilePaths[0] }));
+    Taro.chooseImage({ count: 9 }).then(res => {
+      setForm(prev => ({ ...prev, images: [...prev.images, ...res.tempFilePaths] }));
     });
+  }
+
+  function removeImage(idx: number) {
+    setForm(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== idx) }));
   }
 
   const categoryIndex = categories.findIndex(c => c.id === form.category_id);
@@ -185,12 +202,15 @@ export default function MerchantDishes() {
 
   if (showForm) {
     return (
-      <ScrollView className='dish-form-page' scrollY>
-        <View className='dish-form-inner'>
-          <View className='form-header'>
-            <Text className='back-btn' onClick={() => setShowForm(false)}>← 返回</Text>
-            <Text className='form-title'>{editingDish ? '编辑菜品' : '新增菜品'}</Text>
+      <View className='merchant-layout' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+        <View className='custom-nav' style={{ height: storeTopMargin }}>
+          <View className='nav-back' onClick={() => Taro.navigateBack()}>
+            <Text className='nav-back-icon'>‹</Text>
           </View>
+          <Text className='custom-nav-title'>{editingDish ? '编辑菜品' : '新增菜品'}</Text>
+        </View>
+        <ScrollView className='dish-form-scroll' scrollY>
+          <View className='dish-form-inner'>
 
           <View className='form-group'>
             <Text className='form-label'>菜品名称</Text>
@@ -244,12 +264,17 @@ export default function MerchantDishes() {
 
           <View className='form-group'>
             <Text className='form-label'>菜品图片</Text>
-            <View className='image-picker' onClick={chooseImage}>
-              {form.image ? (
-                <Image className='image-preview-img' src={form.image} mode='aspectFill' />
-              ) : (
-                <Text className='image-placeholder'>+ 点击选择图片</Text>
-              )}
+            <View className='image-grid'>
+              {form.images.map((img, idx) => (
+                <View key={idx} className='image-grid-item'>
+                  <Image className='image-grid-img' src={img} mode='aspectFill' />
+                  <Text className='image-grid-del' onClick={() => removeImage(idx)}>×</Text>
+                </View>
+              ))}
+              <View className='image-grid-item add' onClick={chooseImage}>
+                <Text className='image-grid-add-text'>+</Text>
+                <Text className='image-grid-add-label'>添加</Text>
+              </View>
             </View>
           </View>
 
@@ -270,11 +295,18 @@ export default function MerchantDishes() {
           </View>
         </View>
       </ScrollView>
+      </View>
     );
   }
 
   return (
-    <View className='merchant-layout'>
+    <View className='merchant-layout' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+      <View className='custom-nav' style={{ height: storeTopMargin }}>
+        <View className='nav-back' onClick={() => Taro.navigateBack()}>
+          <Text className='nav-back-icon'>‹</Text>
+        </View>
+        <Text className='custom-nav-title'>菜品管理</Text>
+      </View>
       <View className='category-bar'>
         <View className='filter-row'>
           <Text className='filter-label'>筛选：</Text>
@@ -311,8 +343,12 @@ export default function MerchantDishes() {
               <Text>{cat.name}</Text>
               <Text className='category-del' onClick={e => {
                 e.stopPropagation();
+                const dishCount = dishes.filter(d => d.category_id === cat.id).length;
+                const content = dishCount > 0
+                  ? `此分类下有 ${dishCount} 个菜品，删除后菜品也将被删除，确定删除吗？`
+                  : `确定删除「${cat.name}」吗？`;
                 Taro.showModal({
-                  title: '删除分类', content: `确定删除「${cat.name}」吗？`,
+                  title: '删除分类', content,
                   success: (res) => {
                     if (res.confirm) {
                       merchantAPI.deleteCategory(cat.id).then(() => loadData());
@@ -327,7 +363,7 @@ export default function MerchantDishes() {
             editable: true, placeholderText: '分类名称',
             success: (res) => {
               if (res.confirm && res.content) {
-                merchantAPI.addCategory({ name: res.content }).then(() => loadData());
+                merchantAPI.addCategory(storeId, { name: res.content }).then(() => loadData());
               }
             }
           })}>+</View>
@@ -340,7 +376,7 @@ export default function MerchantDishes() {
             <View className='dish-main'>
               <View className='dish-img'>
                 {dish.image ? (
-                  <Image className='dish-img-content' src={getImageUrl(dish.image)} mode='aspectFill' />
+                  <SafeImage className='dish-img-content' src={dish.image.split(',')[0]} mode='aspectFill' />
                 ) : (
                   <Text>🍽️</Text>
                 )}

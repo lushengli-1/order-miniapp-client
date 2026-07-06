@@ -1,12 +1,16 @@
 .dashboard {
+  flex: 1;
+  min-height: 0;
   padding: 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .loading, .error {
   display: flex;
+  flex: 1;
   align-items: center;
   justify-content: center;
-  height: 300px;
   color: #BFB8AD;
   font-size: 28px;
 }
@@ -17,10 +21,10 @@
   gap: 16px;
   .stat-card {
     background: #fff;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 24px;
     text-align: center;
-    box-shadow: 0 2px 12px rgba(141, 181, 128, 0.06);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
     .stat-value { font-size: 36px; font-weight: 700; display: block; }
     .stat-label { font-size: 24px; color: #8C857B; margin-top: 8px; display: block; }
     &.sales .stat-value { color: #8DB580; }
@@ -32,10 +36,10 @@
 
 .section {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 24px;
   margin-top: 20px;
-  box-shadow: 0 2px 12px rgba(141, 181, 128, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   .section-title { font-size: 28px; font-weight: 600; color: #3D3929; margin-bottom: 16px; display: block; }
 }
 
@@ -55,11 +59,27 @@
   .trend-item {
     display: flex;
     align-items: center;
-    padding: 16px 0;
+    padding: 20px 0;
     border-bottom: 1px solid #F0F5EC;
     &:last-child { border-bottom: none; }
-    .trend-date { width: 100px; font-size: 24px; color: #8C857B; }
-    .trend-orders { flex: 1; font-size: 24px; color: #3D3929; }
-    .trend-amount { font-size: 24px; color: #C4875A; font-weight: 600; }
+    .trend-date {
+      width: 110px;
+      font-size: 24px;
+      color: #8C857B;
+      flex-shrink: 0;
+    }
+    .trend-orders {
+      flex: 1;
+      font-size: 26px;
+      color: #3D3929;
+      text-align: center;
+    }
+    .trend-amount {
+      min-width: 100px;
+      text-align: right;
+      font-size: 28px;
+      color: #C4875A;
+      font-weight: 700;
+    }
   }
 }

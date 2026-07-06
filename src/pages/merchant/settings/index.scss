@@ -1,6 +1,8 @@
 .settings-page {
   flex: 1;
   padding: 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .loading {
@@ -10,13 +12,15 @@
   height: 300px;
   color: #BFB8AD;
   font-size: 28px;
+  position: relative;
+  z-index: 1;
 }
 
 .section {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 2px 12px rgba(141, 181, 128, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
 .form-group {
@@ -42,4 +46,5 @@
   font-size: 28px;
   font-weight: 600;
   margin-top: 40px;
+  box-shadow: 0 4px 16px rgba(141, 181, 128, 0.25);
 }

@@ -1,11 +1,12 @@
-.m-dishes {
-}
-
 .category-bar {
   background: #fff;
   padding: 20px;
-  margin-bottom: 8px;
-  .category-title { font-size: 24px; color: #BFB8AD; margin-bottom: 12px; display: block; }
+  margin: 12px 20px 8px;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  position: relative;
+  z-index: 1;
+  .category-title { font-size: 24px; color: #8C857B; margin-bottom: 12px; display: block; }
   .category-list { display: flex; flex-wrap: wrap; gap: 12px; }
   .filter-row {
     display: flex;
@@ -34,14 +35,20 @@
   }
 }
 
-.dish-list { flex: 1; padding: 0 20px; min-height: 0; }
+.dish-list {
+  flex: 1;
+  padding: 0 20px;
+  min-height: 0;
+  position: relative;
+  z-index: 1;
+}
 
 .dish-card {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 20px;
   margin-bottom: 12px;
-  box-shadow: 0 2px 12px rgba(141, 181, 128, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   .dish-main { display: flex; align-items: center; }
   .dish-img {
     width: 100px; height: 100px;
@@ -88,26 +95,31 @@
   border-radius: 50px;
   font-size: 28px;
   font-weight: 600;
+  box-shadow: 0 4px 16px rgba(141, 181, 128, 0.25);
 }
 
 /* 表单页面 */
-.dish-form-page {
-  height: 100vh;
+.dish-form-scroll {
+  flex: 1;
+  position: relative;
+  z-index: 1;
   .dish-form-inner {
-    padding: 20px 0;
+    padding: 20px;
   }
-  .form-header {
+  .form-back {
     display: flex;
     align-items: center;
-    margin-bottom: 30px;
-    .back-btn { font-size: 28px; color: #8DB580; margin-right: 20px; }
-    .form-title { font-size: 32px; font-weight: 600; color: #3D3929; }
+    margin-bottom: 24px;
+    padding: 10px 0;
+    .back-arrow { font-size: 32px; color: #8DB580; margin-right: 8px; }
+    .back-label { font-size: 26px; color: #8DB580; }
   }
   .form-group {
     background: #fff;
-    border-radius: 16px;
+    border-radius: 20px;
     padding: 20px;
     margin-bottom: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
     .form-label { font-size: 26px; color: #8C857B; margin-bottom: 12px; display: block; }
     .form-input { height: 60px; font-size: 28px; color: #3D3929; }
     .form-textarea { width: 100%; height: auto; min-height: 200px; font-size: 28px; color: #3D3929; line-height: 1.6; border: none; background: transparent; }
@@ -118,19 +130,45 @@
       .form-label { margin-bottom: 0; }
     }
   }
-  .image-picker {
-    height: 100px;
-    border: 2px dashed #D5CFC5;
-    border-radius: 12px;
+  .image-grid {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    .image-placeholder { color: #BFB8AD; font-size: 26px; }
-    .image-preview { color: #8DB580; font-size: 26px; }
-    .image-preview-img { width: 100%; height: 100%; object-fit: cover; }
+    flex-wrap: wrap;
+    gap: 16px;
+    .image-grid-item {
+      width: 160px;
+      height: 160px;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      background: #F2F5ED;
+      .image-grid-img { width: 100%; height: 100%; object-fit: cover; }
+      .image-grid-del {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 32px;
+        height: 32px;
+        background: rgba(0,0,0,0.5);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        line-height: 1;
+      }
+      &.add {
+        border: 2px dashed #D5CFC5;
+        background: #FAFAF8;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        .image-grid-add-text { font-size: 48px; color: #D5CFC5; line-height: 1; }
+        .image-grid-add-label { font-size: 22px; color: #BFB8AD; margin-top: 4px; }
+      }
+    }
   }
-
 }
 
 .form-submit-btn {
@@ -142,4 +180,5 @@
   border-radius: 50px;
   font-size: 28px;
   font-weight: 600;
+  box-shadow: 0 4px 16px rgba(141, 181, 128, 0.25);
 }

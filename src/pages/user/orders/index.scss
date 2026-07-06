@@ -2,14 +2,48 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background: #F7F4EF;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+.orders-page::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(247, 244, 239, 0.55);
+  z-index: 0;
+  pointer-events: none;
+}
+.orders-page > View, .orders-page > ScrollView {
+  position: relative;
+  z-index: 1;
+}
+
+.custom-nav {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  .custom-nav-title {
+    font-size: 34px;
+    font-weight: 600;
+    color: #3D3929;
+    padding-bottom: 8px;
+    text-shadow: 0 1px 4px rgba(255,255,255,0.4);
+  }
 }
 
 .tabs {
   display: flex;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   white-space: nowrap;
   padding: 0 20px;
-  border-bottom: 1px solid #EAE4D8;
+  border-bottom: 1px solid rgba(234, 228, 216, 0.6);
   .tab-item {
     display: inline-block;
     padding: 24px 30px;
@@ -24,17 +58,31 @@
   }
 }
 
-.order-list {
-  flex: 1;
+.order-content {
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  margin: 24px;
+  border-radius: 24px;
   padding: 20px;
+  background: rgba(236, 234, 234, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.order-list {
+  height: 100%;
 }
 
 .order-card {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 16px;
-  box-shadow: 0 2px 12px rgba(141, 181, 128, 0.06);
+  box-shadow: 0 4px 16px rgba(141, 181, 128, 0.12);
   .order-header {
     display: flex;
     justify-content: space-between;
@@ -50,7 +98,7 @@
   .order-footer {
     margin-top: 16px;
     padding-top: 16px;
-    border-top: 1px solid #F0F5EC;
+    border-top: 1px solid rgba(240, 245, 236, 0.6);
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -66,7 +114,7 @@
       font-weight: 600;
     }
     .review-btn {
-      background: #F0F5EC;
+      background: rgba(240, 245, 236, 0.7);
       color: #8DB580;
       padding: 10px 32px;
       border-radius: 30px;
@@ -74,7 +122,7 @@
       font-weight: 600;
     }
     .reviewed-btn {
-      background: #F8F6F0;
+      background: rgba(248, 246, 240, 0.7);
       color: #D5CFC5;
       padding: 10px 32px;
       border-radius: 30px;
@@ -84,10 +132,37 @@
 }
 
 .empty-state {
-  text-align: center;
-  padding: 100px 0;
-  color: #BFB8AD;
-  font-size: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  .empty-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 24px;
+    padding: 60px 80px;
+    min-width: 400px;
+    box-shadow: 0 4px 20px rgba(141, 181, 128, 0.1);
+    margin-bottom: 88px;
+  }
+  .empty-icon { font-size: 80px; margin-bottom: 20px; }
+  .empty-text { font-size: 28px; color: #8C857B; margin-bottom: 8px; font-weight: 500; }
+  .empty-hint { font-size: 24px; color: #BFB8AD; margin-bottom: 24px; }
+  .empty-btn {
+    background: linear-gradient(135deg, #8DB580, #B5D3A7);
+    color: #fff;
+    padding: 18px 60px;
+    border-radius: 40px;
+    font-size: 28px;
+    font-weight: 600;
+  }
 }
 
 .loading-more {
@@ -95,4 +170,24 @@
   padding: 20px;
   color: #BFB8AD;
   font-size: 24px;
+}
+
+.role-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #F7F4EF;
+  .role-notice-icon { font-size: 80px; margin-bottom: 20px; }
+  .role-notice-title { font-size: 32px; font-weight: 600; color: #3D3929; margin-bottom: 10px; }
+  .role-notice-desc { font-size: 26px; color: #BFB8AD; margin-bottom: 30px; }
+  .role-notice-btn {
+    background: linear-gradient(135deg, #8DB580, #B5D3A7);
+    color: #fff;
+    padding: 20px 60px;
+    border-radius: 40px;
+    font-size: 28px;
+    font-weight: 600;
+  }
 }

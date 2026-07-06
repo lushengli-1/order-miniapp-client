@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Image } from '@tarojs/components';
+import { View, Text, Swiper, SwiperItem } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { dishAPI, cartAPI, reviewAPI } from '../../../services/api';
 import { formatPrice, getImageUrl } from '../../../utils';
+import SafeImage from '../../../components/SafeImage';
+import { useNavBarHeight } from '../../../hooks/useNavBarHeight';
 import './index.scss';
 
 interface DishDetail {
@@ -12,6 +14,8 @@ interface DishDetail {
 }
 
 export default function RecipeDetail() {
+  const storeTopMargin = useNavBarHeight();
+
   const [dish, setDish] = useState<DishDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -34,7 +38,6 @@ export default function RecipeDetail() {
       const dish = await dishAPI.getDishDetail(Number(id));
       setDish(dish);
       setLoading(false);
-      // 加载评价
       try {
         const result = await reviewAPI.getDishReviews(Number(id));
         setReviews(result.list || []);
@@ -48,6 +51,14 @@ export default function RecipeDetail() {
 
   async function addToCart() {
     if (!dish) return;
+    if (!Taro.getStorageSync('token')) {
+      Taro.showModal({
+        title: '提示',
+        content: '请先登录',
+        success: (res) => { if (res.confirm) Taro.switchTab({ url: '/pages/user/profile/index' }); }
+      });
+      return;
+    }
     try {
       await cartAPI.addToCart(dish.id);
       Taro.showToast({ title: '已加入购物车', icon: 'success', duration: 800 });
@@ -57,12 +68,28 @@ export default function RecipeDetail() {
   }
 
   if (loading) {
-    return <View className='recipe-page'><View className='recipe-loading'><Text>加载中...</Text></View></View>;
+    return (
+      <View className='recipe-page' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+        <View className='custom-nav' style={{ height: storeTopMargin }}>
+          <View className='nav-back' onClick={() => Taro.navigateBack()}>
+            <Text className='nav-back-icon'>‹</Text>
+          </View>
+          <Text className='custom-nav-title'>商品详情</Text>
+        </View>
+        <View className='recipe-loading'><Text>加载中...</Text></View>
+      </View>
+    );
   }
 
   if (error || !dish) {
     return (
-      <View className='recipe-page'>
+      <View className='recipe-page' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+        <View className='custom-nav' style={{ height: storeTopMargin }}>
+          <View className='nav-back' onClick={() => Taro.navigateBack()}>
+            <Text className='nav-back-icon'>‹</Text>
+          </View>
+          <Text className='custom-nav-title'>商品详情</Text>
+        </View>
         <View className='recipe-error'>
           <Text>{error || '菜品不存在'}</Text>
           <Text className='error-btn' onClick={() => Taro.navigateBack()}>← 返回</Text>
@@ -72,23 +99,51 @@ export default function RecipeDetail() {
   }
 
   return (
-    <View className='recipe-page'>
-      <ScrollView scrollY>
+    <View className='recipe-page' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+      <View className='custom-nav' style={{ height: storeTopMargin }}>
+        <View className='nav-back' onClick={() => Taro.navigateBack()}>
+          <Text className='nav-back-icon'>‹</Text>
+        </View>
+        <Text className='custom-nav-title'>商品详情</Text>
+      </View>
+
+      <View className='recipe-scroll'>
+        <View className='recipe-scroll-inner'>
         <View className='dish-hero'>
           {dish.image ? (
-            <Image className='dish-hero-img' src={getImageUrl(dish.image)} mode='aspectFill' />
+            <Swiper
+              className='dish-hero-swiper'
+              indicatorColor='rgba(255,255,255,0.4)'
+              indicatorActiveColor='#fff'
+              circular
+              indicatorDots
+            >
+              {dish.image.split(',').map((img, idx) => (
+                <SwiperItem key={idx}>
+                  <SafeImage
+                    className='dish-hero-img'
+                    src={img.trim()}
+                    mode='aspectFill'
+                    onClick={() => {
+                      const urls = dish.image.split(',').map(u => getImageUrl(u.trim()));
+                      Taro.previewImage({ current: urls[idx], urls });
+                    }}
+                  />
+                </SwiperItem>
+              ))}
+            </Swiper>
           ) : (
             <Text>🍽️</Text>
           )}
         </View>
 
-        <View className='dish-summary'>
+        <View className='glass-section dish-summary'>
           <Text className='dish-name'>{dish.name}</Text>
           <Text className='dish-price'>{formatPrice(dish.price)}</Text>
           {dish.description && <Text className='dish-desc'>{dish.description}</Text>}
         </View>
 
-        <View className='recipe-section'>
+        <View className='glass-section'>
           <Text className='section-title'>📖 做法</Text>
           {dish.recipe ? (
             <Text className='recipe-content'>{dish.recipe}</Text>
@@ -97,7 +152,7 @@ export default function RecipeDetail() {
           )}
         </View>
 
-        <View className='recipe-section'>
+        <View className='glass-section'>
           <Text className='section-title'>
             ⭐ 评价 {avgRating > 0 ? <Text className='rating-avg'>{avgRating}</Text> : ''}
           </Text>
@@ -116,7 +171,8 @@ export default function RecipeDetail() {
             ))
           )}
         </View>
-      </ScrollView>
+        </View>
+      </View>
 
       <View className='recipe-bottom-bar'>
         <View className='add-cart-btn' onClick={addToCart}>加入购物车</View>

@@ -1,7 +1,7 @@
 import Taro from '@tarojs/taro';
 
 // 服务器基础地址（不含 /api）
-const SERVER_BASE = 'http://192.168.1.4:3001';
+const SERVER_BASE = 'http://192.168.1.12:3001';
 
 // 获取完整图片 URL
 export function getImageUrl(path: string): string {
@@ -20,10 +20,10 @@ export function isLoggedIn(): boolean {
   return !!getToken();
 }
 
-// 简单登录（开发调试用）
-export function devLogin() {
-  Taro.setStorageSync('token', '');
-  Taro.setStorageSync('user', null);
+// 清除登录状态（开发调试用）
+export function clearAuth() {
+  Taro.removeStorageSync('token');
+  Taro.removeStorageSync('user');
 }
 
 // 格式化金额

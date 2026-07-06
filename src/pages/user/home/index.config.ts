@@ -1,3 +1,3 @@
 export default definePageConfig({
-  navigationBarTitleText: '点餐'
+  navigationStyle: 'custom'
 });

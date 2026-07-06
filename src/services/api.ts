@@ -1,20 +1,22 @@
 import Taro from '@tarojs/taro';
 
-const BASE_URL = 'http://192.168.1.4:3001/api';
+const BASE_URL = 'http://192.168.1.12:3001/api';
 
 const request = (url: string, options: any = {}) => {
   const token = Taro.getStorageSync('token');
+  const header: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) header.Authorization = `Bearer ${token}`;
   return new Promise<any>((resolve, reject) => {
     Taro.request({
       url: `${BASE_URL}${url}`,
-      header: {
-        'Content-Type': 'application/json',
-        Authorization: token ? `Bearer ${token}` : ''
-      },
+      header,
       ...options,
       success: (res) => {
         if (res.data.code === 0) {
           resolve(res.data.data);
+        } else if (res.data.code === 401) {
+          // 未登录，由页面处理（弹窗等），不 toast
+          reject(res.data);
         } else {
           Taro.showToast({ title: res.data.message || '请求失败', icon: 'none' });
           reject(res.data);
@@ -30,21 +32,32 @@ const request = (url: string, options: any = {}) => {
 
 // 用户认证
 export const authAPI = {
-  login: (data: { openid: string; nickname?: string; avatar?: string }) =>
+  login: (data: { username: string; password: string }) =>
     request('/auth/login', { method: 'POST', data }),
-  getUserInfo: () => request('/auth/userinfo', { method: 'GET' })
+  register: (data: { username: string; password: string; nickname: string; role?: number }) =>
+    request('/auth/register', { method: 'POST', data }),
+  wechatLogin: (data: { code: string; nickname?: string; avatar?: string }) =>
+    request('/auth/wechat/login', { method: 'POST', data }),
+  setupUser: (data: { role?: number; nickname?: string; invite_code?: string }) =>
+    request('/auth/setup', { method: 'POST', data }),
+  getUserInfo: () => request('/auth/userinfo', { method: 'GET' }),
+  updateAvatar: (url: string) =>
+    request('/auth/avatar/update', { method: 'POST', data: { url } }),
+  updateUserInfo: (data: { nickname?: string }) =>
+    request('/auth/userinfo/update', { method: 'POST', data })
 };
 
 // 店铺 & 菜品
 export const dishAPI = {
-  getStoreInfo: (storeId = 1) => request(`/store/${storeId}`),
-  getCategories: (storeId = 1) => request(`/categories/${storeId}`),
-  getDishes: (storeId = 1, categoryId?: number) =>
-    request(`/dishes/${storeId}${categoryId ? `?category_id=${categoryId}` : ''}`),
-  getRecommended: (storeId = 1) => request(`/dishes/recommend/${storeId}`),
-  searchDishes: (keyword: string, storeId = 1) =>
-    request(`/dishes/search/${storeId}?keyword=${keyword}`),
-  getDishDetail: (id: number) => request(`/dish/${id}`)
+  getStoreInfo: (storeId?: number) => request(`/store${storeId ? `/${storeId}` : ''}`),
+  getCategories: (storeId?: number) => request(`/categories${storeId ? `/${storeId}` : ''}`),
+  getDishes: (storeId?: number, categoryId?: number) =>
+    request(`/dishes${storeId ? `/${storeId}` : ''}${categoryId ? `?category_id=${categoryId}` : ''}`),
+  getRecommended: (storeId?: number) => request(`/dishes/recommend${storeId ? `/${storeId}` : ''}`),
+  searchDishes: (keyword: string, storeId?: number) =>
+    request(`/dishes/search${storeId ? `/${storeId}` : ''}?keyword=${encodeURIComponent(keyword)}`),
+  getDishDetail: (id: number) => request(`/dish/${id}`),
+  getPopularDishes: (storeId?: number, limit = 10) => request(`/dishes/popular${storeId ? `/${storeId}` : ''}?limit=${limit}`)
 };
 
 // 购物车
@@ -69,7 +82,7 @@ export const reviewAPI = {
   addReview: (data: { dish_id: number; order_id: number; rating: number; content?: string }) =>
     request('/review/add', { method: 'POST', data }),
   getDishReviews: (dishId: number) => request(`/reviews/${dishId}`),
-  getReviewStats: (storeId = 1) => request(`/reviews/stats/${storeId}`)
+  getReviewStats: (storeId?: number) => request(`/reviews/stats${storeId ? `/${storeId}` : ''}`)
 };
 
 // 订单
@@ -83,68 +96,77 @@ export const orderAPI = {
   cancelOrder: (id: number) => request(`/order/${id}/cancel`, { method: 'POST' })
 };
 
+// 单张图片上传，返回URL
+export async function uploadImage(filePath: string): Promise<string> {
+  const res = await Taro.uploadFile({
+    url: `${BASE_URL}/upload/image`,
+    filePath,
+    name: 'image',
+    header: { Authorization: `Bearer ${Taro.getStorageSync('token')}` }
+  });
+  const data = JSON.parse(res.data);
+  if (data.code !== 0) throw new Error(data.message || '上传失败');
+  return data.data.url;
+}
+
+// 批量上传图片，返回逗号分隔的URL
+async function uploadImages(filePaths: string[]): Promise<string> {
+  const urls: string[] = [];
+  for (const fp of filePaths) {
+    const url = await uploadImage(fp);
+    urls.push(url);
+  }
+  return urls.join(',');
+}
+
 // 商家端
 export const merchantAPI = {
   updateStore: (storeId: number, data: { name: string; phone: string; address: string; notice: string; status: number }) =>
     request(`/merchant/store/update/${storeId}`, { method: 'POST', data }),
   getStatistics: () => request('/merchant/statistics'),
   getDishes: (storeId = 1) => request(`/merchant/dishes/${storeId}`),
-  addDish: (storeId: number, data: any) => {
-    if (!data.image) {
-      return request(`/merchant/dish/add/${storeId}`, {
-        method: 'POST',
-        data: { ...data, image: '' }
-      });
+  addDish: async (storeId: number, data: any) => {
+    let imageUrl = '';
+    if (data.image) {
+      const images = Array.isArray(data.image) ? data.image : [data.image];
+      const newFiles = images.filter(p => p.startsWith('http://tmp') || p.startsWith('wxfile://') || p.startsWith('https://tmp'));
+      const existingUrls = images.filter(p => !p.startsWith('http://tmp') && !p.startsWith('wxfile://') && !p.startsWith('https://tmp'));
+      if (newFiles.length > 0) {
+        imageUrl = await uploadImages(newFiles);
+      }
+      if (existingUrls.length > 0) {
+        imageUrl = imageUrl ? imageUrl + ',' + existingUrls.join(',') : existingUrls.join(',');
+      }
     }
-    return Taro.uploadFile({
-      url: `${BASE_URL}/merchant/dish/add/${storeId}`,
-      filePath: data.image,
-      name: 'image',
-      formData: {
-        category_id: data.category_id,
-        name: data.name,
-        price: data.price,
-        original_price: data.original_price || '0',
-        description: data.description || '',
-        recipe: data.recipe || '',
-        unit: data.unit || '份',
-        stock: data.stock || '999',
-        is_recommend: data.is_recommend || '0'
-      },
-      header: { Authorization: `Bearer ${Taro.getStorageSync('token')}` }
-    }).then(res => JSON.parse(res.data));
+    return request(`/merchant/dish/add/${storeId}`, {
+      method: 'POST',
+      data: { ...data, image: imageUrl }
+    });
   },
-  updateDish: (id: number, data: any) => {
-    if (!data.image || data.image.startsWith('http') || data.image.startsWith('/uploads/')) {
-      return request(`/merchant/dish/update/${id}`, {
-        method: 'POST',
-        data: { ...data, image: undefined }
-      });
+  updateDish: async (id: number, data: any) => {
+    let imageUrl = data.image || '';
+    if (Array.isArray(data.image)) {
+      const newFiles = data.image.filter(p => p.startsWith('http://tmp') || p.startsWith('wxfile://') || p.startsWith('https://tmp'));
+      const existingUrls = data.image.filter(p => !p.startsWith('http://tmp') && !p.startsWith('wxfile://') && !p.startsWith('https://tmp'));
+      if (newFiles.length > 0) {
+        imageUrl = await uploadImages(newFiles);
+      } else {
+        imageUrl = '';
+      }
+      if (existingUrls.length > 0) {
+        imageUrl = imageUrl ? imageUrl + ',' + existingUrls.join(',') : existingUrls.join(',');
+      }
     }
-    return Taro.uploadFile({
-      url: `${BASE_URL}/merchant/dish/update/${id}`,
-      filePath: data.image,
-      name: 'image',
-      formData: {
-        category_id: data.category_id,
-        name: data.name,
-        price: data.price,
-        original_price: data.original_price || '0',
-        description: data.description || '',
-        recipe: data.recipe || '',
-        unit: data.unit || '份',
-        stock: data.stock || '0',
-        status: data.status ?? '1',
-        is_recommend: data.is_recommend || '0'
-      },
-      header: { Authorization: `Bearer ${Taro.getStorageSync('token')}` }
-    }).then(res => JSON.parse(res.data));
+    return request(`/merchant/dish/update/${id}`, {
+      method: 'POST',
+      data: { ...data, image: imageUrl }
+    });
   },
   deleteDish: (id: number) =>
     request(`/merchant/dish/delete/${id}`, { method: 'POST' }),
-  getCategories: (storeId = 1) => request(`/merchant/categories/${storeId}`),
-  addCategory: (data: { name: string; sort?: number }) =>
-    request('/merchant/category/add/1', { method: 'POST', data }),
+  getCategories: (storeId: number) => request(`/merchant/categories/${storeId}`),
+  addCategory: (storeId: number, data: { name: string; sort?: number }) =>
+    request(`/merchant/category/add/${storeId}`, { method: 'POST', data }),
   updateCategory: (id: number, data: { name: string; sort?: number }) =>
     request(`/merchant/category/update/${id}`, { method: 'POST', data }),
   deleteCategory: (id: number) =>

@@ -1,53 +1,101 @@
 .detail-page {
-  min-height: 100vh;
-  background: #F8F6F0;
-  padding-bottom: 100px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #F7F4EF;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+.detail-page::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(247, 244, 239, 0.55);
+  z-index: 0;
+  pointer-events: none;
+}
+.detail-page > View {
+  position: relative;
+  z-index: 1;
+}
+
+.custom-nav {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  .custom-nav-title {
+    font-size: 34px;
+    font-weight: 600;
+    color: #3D3929;
+    padding-bottom: 8px;
+    text-shadow: 0 1px 4px rgba(255,255,255,0.4);
+  }
+}
+
+.detail-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .loading, .error {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 300px;
+  flex: 1;
   color: #BFB8AD;
   font-size: 28px;
 }
 
 /* 状态区 */
 .status-section {
-  padding: 50px 30px;
+  padding: 40px 30px;
   text-align: center;
-  background: linear-gradient(135deg, #8DB580, #B5D3A7);
   color: #fff;
+  border-radius: 24px;
   .status-icon { font-size: 60px; display: block; }
   .status-text { font-size: 36px; font-weight: 700; display: block; margin-top: 12px; text-shadow: 0 1px 2px rgba(0,0,0,0.06); }
   .status-hint { font-size: 24px; opacity: 0.9; display: block; margin-top: 8px; }
 }
 
-/* 商品信息 */
-.order-section {
-  background: #fff;
-  margin: 20px;
-  border-radius: 16px;
+/* 毛玻璃卡片 */
+.glass-section {
+  background: rgba(236, 234, 234, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 24px;
   padding: 24px;
-  box-shadow: 0 2px 12px rgba(141, 181, 128, 0.06);
-  .section-title { font-size: 28px; font-weight: 600; color: #3D3929; margin-bottom: 16px; }
+  .section-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #3D3929;
+    margin-bottom: 16px;
+    display: block;
+  }
   .order-item {
     display: flex;
     align-items: center;
     padding: 16px 0;
-    border-bottom: 1px solid #F0F5EC;
+    border-bottom: 1px solid rgba(240, 245, 236, 0.6);
     &:last-child { border-bottom: none; }
     .item-img {
       width: 80px; height: 80px;
-      background: #F2F5ED; border-radius: 10px;
+      background: rgba(242, 245, 237, 0.6);
+      border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
       margin-right: 16px; font-size: 32px;
       overflow: hidden;
     }
     .item-info { flex: 1; }
     .item-name { font-size: 26px; font-weight: 600; display: block; color: #3D3929; }
-    .item-meta { font-size: 22px; color: #BFB8AD; margin-top: 4px; display: block; }
+    .item-meta { font-size: 22px; color: #8C857B; margin-top: 4px; display: block; }
     .item-total { font-size: 26px; color: #C4875A; font-weight: 700; }
     .item-review { margin-top: 6px; }
     .review-stars { font-size: 18px; }
@@ -55,22 +103,17 @@
   }
 }
 
-/* 合计 */
-.total-section {
-  background: #fff;
-  margin: 20px;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 2px 12px rgba(141, 181, 128, 0.06);
-  .total-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 0;
-    .label { font-size: 26px; color: #8C857B; }
-    .value { font-size: 26px; color: #3D3929; }
-    &.total { border-top: 1px solid #F0F5EC; margin-top: 8px; padding-top: 16px; }
-    .price { color: #C4875A; font-size: 30px; font-weight: 700; }
-  }
+/* 订单信息 */
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(240, 245, 236, 0.6);
+  &:last-child { border-bottom: none; }
+  .label { font-size: 26px; color: #8C857B; }
+  .value { font-size: 26px; color: #3D3929; }
+  &.total { border-top: 1px solid rgba(240, 245, 236, 0.6); margin-top: 4px; padding-top: 16px; }
+  .price { color: #C4875A; font-size: 30px; font-weight: 700; }
 }
 
 /* 操作按钮 */
@@ -78,7 +121,7 @@
   display: flex;
   justify-content: center;
   gap: 20px;
-  padding: 30px 20px;
+  padding: 10px 0;
   .pay-btn {
     background: linear-gradient(135deg, #8DB580, #B5D3A7);
     color: #fff;
@@ -88,8 +131,8 @@
     font-weight: 600;
   }
   .cancel-btn {
-    background: #fff;
-    border: 1px solid #EAE4D8;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(234, 228, 216, 0.8);
     color: #8C857B;
     padding: 16px 60px;
     border-radius: 40px;

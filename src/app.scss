@@ -65,17 +65,81 @@ $bg-color: #F8F6F0;
   font-size: 28px;
 }
 
+/* Taro H5 tabBar 样式修正 */
+.taro-tabbar {
+  .taro-tabbar__tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 0;
+  }
+  .taro-tabbar__tab-title {
+    font-size: 20px;
+    line-height: 1.2;
+    margin-top: 2px;
+  }
+  .taro-tabbar__tab-img {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* 自定义导航栏 */
+.custom-nav {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  .custom-nav-title {
+    font-size: 34px;
+    font-weight: 600;
+    color: #3D3929;
+    padding-bottom: 8px;
+    text-shadow: 0 1px 4px rgba(255,255,255,0.4);
+  }
+  .nav-back {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding: 0 20px 6px;
+    display: flex;
+    align-items: center;
+    .nav-back-icon {
+      font-size: 40px;
+      color: #3D3929;
+      line-height: 1;
+    }
+  }
+}
+
 /* 商家布局 - 底部导航 */
 .merchant-layout {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+.merchant-layout::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(247, 244, 239, 0.75);
+  z-index: 0;
+  pointer-events: none;
 }
 .merchant-main {
   flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 .merchant-nav {
   display: flex;
@@ -83,16 +147,34 @@ $bg-color: #F8F6F0;
   border-top: 1px solid $border-color;
   padding-bottom: constant(safe-area-inset-bottom);
   padding-bottom: env(safe-area-inset-bottom);
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.04);
   .nav-item {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px 0;
-    &.active .nav-label { color: $primary; }
+    padding: 10px 0;
+    position: relative;
+    .nav-icon { font-size: 40px; }
+    .nav-label { font-size: 20px; color: $text-secondary; margin-top: 4px; }
+    &.active {
+      .nav-label { color: $primary; font-weight: 600; }
+      .nav-icon { position: relative; }
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 3px;
+        background: $primary;
+        border-radius: 2px;
+      }
+    }
   }
-  .nav-icon { font-size: 40px; }
-  .nav-label { font-size: 20px; color: $text-secondary; margin-top: 4px; }
 }
 
 /* 角色提示页 */

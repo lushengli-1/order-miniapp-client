@@ -3,6 +3,8 @@ import { View, Text, ScrollView, Input, Image } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import { dishAPI, cartAPI, favoriteAPI, reviewAPI } from '../../../services/api';
 import { formatPrice, getImageUrl } from '../../../utils';
+import SafeImage from '../../../components/SafeImage';
+import { useNavBarHeight } from '../../../hooks/useNavBarHeight';
 import './index.scss';
 
 interface Category {
@@ -20,6 +22,8 @@ interface CartItem {
 }
 
 export default function Home() {
+  const storeTopMargin = useNavBarHeight();
+
   const [storeInfo, setStoreInfo] = useState<any>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [dishes, setDishes] = useState<Dish[]>([]);
@@ -31,6 +35,8 @@ export default function Home() {
   const [isSearching, setIsSearching] = useState(false);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [showFavorites, setShowFavorites] = useState(false);
+  const [showPopular, setShowPopular] = useState(true);
+  const [popularDishes, setPopularDishes] = useState<Dish[]>([]);
   const [reviewStats, setReviewStats] = useState<Record<number, { count: number; avg: number }>>({});
 
   useEffect(() => {
@@ -47,6 +53,7 @@ export default function Home() {
     setCart(savedCart);
 
     const user = Taro.getStorageSync('user');
+    const token = Taro.getStorageSync('token');
     if (user?.role === 1) {
       setIsMerchant(true);
       setLoading(false);
@@ -54,7 +61,7 @@ export default function Home() {
     }
     setIsMerchant(false);
     loadData();
-    syncCartFromServer();
+    if (token) syncCartFromServer();
   }
 
   async function syncCartFromServer() {
@@ -83,12 +90,14 @@ export default function Home() {
       setStoreInfo(storeInfo);
       setCategories(categories);
       setDishes(dishes);
-      setActiveCategory(categories[0]?.id || 0);
       setLoading(false);
     } catch (err) {
       setLoading(false);
     }
-    loadFavorites();
+    dishAPI.getPopularDishes().then(setPopularDishes).catch(() => {});
+    if (Taro.getStorageSync('token')) {
+      loadFavorites();
+    }
     loadReviewStats();
   }
 
@@ -113,10 +122,11 @@ export default function Home() {
   const filteredDishes = useMemo(
     () => {
       if (isSearching) return dishes;
+      if (showPopular) return popularDishes;
       if (showFavorites) return dishes.filter(d => favorites.has(d.id));
       return dishes.filter(d => d.category_id === activeCategory);
     },
-    [dishes, activeCategory, isSearching, favorites, showFavorites]
+    [dishes, activeCategory, isSearching, favorites, showFavorites, showPopular, popularDishes]
   );
 
   function toggleFavorite(dishId: number) {
@@ -151,7 +161,7 @@ export default function Home() {
       Taro.showModal({
         title: '提示',
         content: '请先登录',
-        success: () => Taro.switchTab({ url: '/pages/user/profile/index' })
+        success: (res) => { if (res.confirm) Taro.switchTab({ url: '/pages/user/profile/index' }); }
       });
       return;
     }
@@ -211,8 +221,8 @@ export default function Home() {
   if (isMerchant) {
     return (
       <View className='role-notice'>
-        <Text className='role-notice-icon'>📊</Text>
-        <Text className='role-notice-title'>当前为商家身份</Text>
+        <Text className='role-notice-icon'>🧑‍🍳</Text>
+        <Text className='role-notice-title'>当前为大厨身份</Text>
         <Text className='role-notice-desc'>请前往"我的"页面管理店铺</Text>
         <View className='role-notice-btn' onClick={() => Taro.switchTab({ url: '/pages/user/profile/index' })}>
           前往"我的"
@@ -222,7 +232,11 @@ export default function Home() {
   }
 
   return (
-    <View className='home'>
+    <View className='home' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+      <View className='custom-nav' style={{ height: storeTopMargin }}>
+        <Text className='custom-nav-title'>{storeInfo?.name || '点餐'}</Text>
+      </View>
+
       {storeInfo && (
         <View className='store-header'>
           <Text className='store-name'>{storeInfo.name}</Text>
@@ -230,10 +244,10 @@ export default function Home() {
         </View>
       )}
 
-      <View className='search-bar'>
+     <View className='search-bar'>
         <Input
           className='search-input'
-          placeholder='搜索菜品'
+          placeholder='搜索你心仪的菜品'
           value={keyword}
           onInput={e => setKeyword(e.detail.value)}
           onConfirm={onSearch}
@@ -247,16 +261,27 @@ export default function Home() {
         <View className='content'>
           <ScrollView className='category-sidebar' scrollY>
             <View
-              className={`category-item ${showFavorites ? 'active' : ''}`}
-              onClick={() => { setIsSearching(false); setKeyword(''); setShowFavorites(true); }}
+              className={`category-item ${showPopular ? 'active' : ''}`}
+              onClick={() =>  {
+                setIsSearching(false); setKeyword(''); setShowFavorites(false); setShowPopular(true);
+                if (popularDishes.length === 0) {
+                  dishAPI.getPopularDishes().then(setPopularDishes).catch(() => {});
+                }
+              }}
             >
-              <Text>❤️ 收藏</Text>
+              <Text>🔥 大家都爱</Text>
+            </View>
+            <View
+              className={`category-item ${showFavorites ? 'active' : ''}`}
+              onClick={() => { setIsSearching(false); setKeyword(''); setShowPopular(false); setShowFavorites(true); }}
+            >
+              <Text>收藏⭐️</Text>
             </View>
             {categories.map(cat => (
               <View
                 key={cat.id}
-                className={`category-item ${activeCategory === cat.id && !showFavorites ? 'active' : ''}`}
-                onClick={() => { setIsSearching(false); setKeyword(''); setShowFavorites(false); setActiveCategory(cat.id); }}
+                className={`category-item ${activeCategory === cat.id && !showFavorites && !showPopular ? 'active' : ''}`}
+                onClick={() => { setIsSearching(false); setKeyword(''); setShowPopular(false); setShowFavorites(false); setActiveCategory(cat.id); }}
               >
                 <Text>{cat.name}</Text>
               </View>
@@ -266,44 +291,47 @@ export default function Home() {
           <ScrollView className='dish-list' scrollY>
             <View className='dish-list-inner'>
               {filteredDishes.map(dish => (
-                <View key={dish.id} className='dish-card'>
+                <View key={dish.id} className='dish-card' onClick={() => Taro.navigateTo({ url: `/pages/user/recipe-detail/index?id=${dish.id}` })}>
                   <View className='dish-img'>
                     {dish.image ? (
-                      <Image className='dish-img-content' src={getImageUrl(dish.image)} mode='aspectFill' />
+                      <SafeImage className='dish-img-content' src={dish.image.split(',')[0]} mode='aspectFill' />
                     ) : (
                       <Text className='dish-img-placeholder'>🍽️</Text>
                     )}
                     <Text className={`fav-btn ${favorites.has(dish.id) ? 'active' : ''}`}
                       onClick={e => { e.stopPropagation(); toggleFavorite(dish.id); }}>
-                      {favorites.has(dish.id) ? '💗' : '♡'}
+                      {favorites.has(dish.id) ? '⭐' : '☆'}
                     </Text>
                   </View>
                   <View className='dish-info'>
                     <Text className='dish-name'>{dish.name}</Text>
                     <Text className='dish-desc'>{dish.description}</Text>
                     <View className='dish-meta'>
-                      <Text className='recipe-link' onClick={() => Taro.navigateTo({ url: `/pages/user/recipe-detail/index?id=${dish.id}` })}>📖 做法</Text>
+                      <Text className='recipe-link' onClick={e => { e.stopPropagation(); Taro.navigateTo({ url: `/pages/user/recipe-detail/index?id=${dish.id}` }); }}>📖 做法</Text>
                       {reviewStats[dish.id] && (
-                        <Text className='meta-rating' onClick={() => Taro.navigateTo({ url: `/pages/user/recipe-detail/index?id=${dish.id}` })}>⭐ {reviewStats[dish.id].avg}</Text>
+                        <Text className='meta-rating' onClick={e => { e.stopPropagation(); Taro.navigateTo({ url: `/pages/user/recipe-detail/index?id=${dish.id}` }); }}>⭐ {reviewStats[dish.id].avg}</Text>
                       )}
                     </View>
                     <View className='dish-bottom'>
                       <Text className='price-current'>{formatPrice(dish.price)}</Text>
                       <View className='qty-control'>
                         {cart.some(c => c.dish_id === dish.id) && (
-                          <Text className='qty-btn' onClick={() => removeFromCart(dish.id)}>-</Text>
+                          <Text className='qty-btn' onClick={e => { e.stopPropagation(); removeFromCart(dish.id); }}>-</Text>
                         )}
                         <Text className='qty-num'>
                           {cart.find(c => c.dish_id === dish.id)?.quantity || ''}
                         </Text>
-                        <Text className='qty-btn primary' onClick={() => addToCart(dish)}>+</Text>
+                        <Text className='qty-btn primary' onClick={e => { e.stopPropagation(); addToCart(dish); }}>+</Text>
                       </View>
                     </View>
                   </View>
                 </View>
               ))}
               {filteredDishes.length === 0 && (
-                <View className='empty'><Text>暂无菜品</Text></View>
+                <View className='empty'>
+                  <Text className='empty-icon'>🥗</Text>
+                  <Text className='empty-text'>{showFavorites ? '还没有收藏的菜品哦' : '大厨还在研究新菜谱～'}</Text>
+                </View>
               )}
             </View>
           </ScrollView>

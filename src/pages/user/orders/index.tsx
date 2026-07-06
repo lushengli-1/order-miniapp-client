@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
-import { orderAPI } from '../../../services/api';
-import { formatPrice, getOrderStatusColor, getUserOrderStatusText } from '../../../utils';
+import { orderAPI, reviewAPI } from '../../../services/api';
+import { formatPrice, getImageUrl, getOrderStatusColor, getUserOrderStatusText } from '../../../utils';
+import { useNavBarHeight } from '../../../hooks/useNavBarHeight';
 import './index.scss';
 
 interface Order {
@@ -17,22 +18,31 @@ const TABS = [
 ];
 
 export default function Orders() {
+  const storeTopMargin = useNavBarHeight();
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState(-1);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isMerchant, setIsMerchant] = useState(false);
-
   const stateRef = useRef({ activeTab, page });
   stateRef.current = { activeTab, page };
+  const [needLogin, setNeedLogin] = useState(!Taro.getStorageSync('token'));
 
   useEffect(() => {
+    if (needLogin) return;
     loadPageData();
   }, []);
 
   useDidShow(() => {
-    loadPageData();
+    const token = Taro.getStorageSync('token');
+    if (token) {
+      setNeedLogin(false);
+      loadPageData();
+    } else {
+      setNeedLogin(true);
+    }
   });
 
   function loadPageData() {
@@ -175,11 +185,31 @@ export default function Orders() {
     });
   }
 
+  if (needLogin) {
+    return (
+      <View className='orders-page' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+        <View className='custom-nav' style={{ height: storeTopMargin }}>
+          <Text className='custom-nav-title'>我的订单</Text>
+        </View>
+        <View className='empty-state'>
+          <View className='empty-card'>
+            <Text className='empty-icon'>👤</Text>
+            <Text className='empty-text'>请先登录</Text>
+            <Text className='empty-hint'>登录后才能查看订单</Text>
+            <View className='empty-btn' onClick={() => Taro.switchTab({ url: '/pages/user/profile/index' })}>
+              去登录
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   if (isMerchant) {
     return (
       <View className='role-notice'>
-        <Text className='role-notice-icon'>📊</Text>
-        <Text className='role-notice-title'>当前为商家身份</Text>
+        <Text className='role-notice-icon'>🧑‍🍳</Text>
+        <Text className='role-notice-title'>当前为大厨身份</Text>
         <Text className='role-notice-desc'>请前往"我的"页面管理店铺</Text>
         <View className='role-notice-btn' onClick={() => Taro.switchTab({ url: '/pages/user/profile/index' })}>
           前往"我的"
@@ -189,7 +219,11 @@ export default function Orders() {
   }
 
   return (
-    <View className='orders-page'>
+    <View className='orders-page' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+      <View className='custom-nav' style={{ height: storeTopMargin }}>
+        <Text className='custom-nav-title'>我的订单</Text>
+      </View>
+
       <ScrollView className='tabs' scrollX showScrollbar={false}>
         {TABS.map(tab => (
           <View
@@ -202,39 +236,56 @@ export default function Orders() {
         ))}
       </ScrollView>
 
-      <ScrollView className='order-list' scrollY onScrollToLower={loadMore}>
-        {orders.length === 0 && !loading && (
-          <View className='empty-state'><Text>暂无订单</Text></View>
-        )}
-        {orders.map(order => (
-          <View key={order.id} className='order-card' onClick={() => goToDetail(order.id)}>
-            <View className='order-header'>
-              <Text className='order-no'>#{order.order_no.slice(-10)}</Text>
-              <Text className='order-status' style={{ color: getOrderStatusColor(order.status) }}>
-                {getUserOrderStatusText(order.status)}
-              </Text>
-            </View>
-            <View className='order-body'>
-              <Text className='order-time'>{order.created_at}</Text>
-              {order.table_no && <Text className='order-table'>桌号: {order.table_no}</Text>}
-            </View>
-            <View className='order-footer'>
-              <View className='order-amount'>
-                合计: <Text className='amount-price'>{formatPrice(order.actual_amount)}</Text>
-              </View>
-              {order.status === 0 && (
-                <Text className='pay-btn' onClick={e => { e.stopPropagation(); handlePay(order); }}>去支付</Text>
-              )}
-              {order.status === 3 && (
-                order.reviewed
-                  ? <Text className='reviewed-btn'>已评价</Text>
-                  : <Text className='review-btn' onClick={e => { e.stopPropagation(); handleReview(order); }}>评价</Text>
-              )}
-            </View>
+      {loading && orders.length === 0 ? (
+        <View className='empty-state'>
+          <View className='empty-card'>
+            <Text className='empty-icon'>⏳</Text>
+            <Text className='empty-text'>加载中...</Text>
+            <Text className='empty-hint'>请稍候</Text>
           </View>
-        ))}
-        {loading && <View className='loading-more'><Text>加载中...</Text></View>}
-      </ScrollView>
+        </View>
+      ) : orders.length > 0 || loading ? (
+        <View className='order-content' style={{ maxHeight: `calc(100vh - ${storeTopMargin}px - 100px - 24px)` }}>
+          <ScrollView className='order-list' scrollY onScrollToLower={loadMore}>
+            {orders.map(order => (
+              <View key={order.id} className='order-card' onClick={() => goToDetail(order.id)}>
+                <View className='order-header'>
+                  <Text className='order-no'>#{order.order_no.slice(-10)}</Text>
+                  <Text className='order-status' style={{ color: getOrderStatusColor(order.status) }}>
+                    {getUserOrderStatusText(order.status)}
+                  </Text>
+                </View>
+                <View className='order-body'>
+                  <Text className='order-time'>{order.created_at}</Text>
+                  {order.table_no && <Text className='order-table'>桌号: {order.table_no}</Text>}
+                </View>
+                <View className='order-footer'>
+                  <View className='order-amount'>
+                    合计: <Text className='amount-price'>{formatPrice(order.actual_amount)}</Text>
+                  </View>
+                  {order.status === 0 && (
+                    <Text className='pay-btn' onClick={e => { e.stopPropagation(); handlePay(order); }}>去支付</Text>
+                  )}
+                  {order.status === 3 && (
+                    order.reviewed
+                      ? <Text className='reviewed-btn'>已评价</Text>
+                      : <Text className='review-btn' onClick={e => { e.stopPropagation(); handleReview(order); }}>评价</Text>
+                  )}
+                </View>
+              </View>
+            ))}
+          {loading && <View className='loading-more'><Text>加载中...</Text></View>}
+        </ScrollView>
+      </View>
+      ) : (
+        <View className='empty-state'>
+          <View className='empty-card'>
+            <Text className='empty-icon'>📋</Text>
+            <Text className='empty-text'>暂无订单</Text>
+            <Text className='empty-hint'>去首页点些好吃的吧～</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }

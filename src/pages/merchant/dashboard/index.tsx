@@ -2,14 +2,15 @@ import { useState, useEffect } from 'react';
 import { View, Text, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import { merchantAPI } from '../../../services/api';
-import { formatPrice } from '../../../utils';
+import { formatPrice, getImageUrl } from '../../../utils';
+import { useNavBarHeight } from '../../../hooks/useNavBarHeight';
 import './index.scss';
 
 const NAV_ITEMS = [
-  { key: 'dashboard', label: '营业概览', icon: '📊', path: '/pages/merchant/dashboard/index' },
-  { key: 'orders', label: '订单管理', icon: '📦', path: '/pages/merchant/orders/index' },
-  { key: 'dishes', label: '菜品管理', icon: '🍽️', path: '/pages/merchant/dishes/index' },
-  { key: 'settings', label: '店铺设置', icon: '⚙️', path: '/pages/merchant/settings/index' },
+  { key: 'dashboard', label: '营业概览', icon: '📈', path: '/pages/merchant/dashboard/index' },
+  { key: 'orders', label: '订单管理', icon: '🧾', path: '/pages/merchant/orders/index' },
+  { key: 'dishes', label: '菜品管理', icon: '🥘', path: '/pages/merchant/dishes/index' },
+  { key: 'settings', label: '店铺设置', icon: '🔧', path: '/pages/merchant/settings/index' },
 ];
 
 interface TrendItem {
@@ -17,6 +18,13 @@ interface TrendItem {
 }
 
 export default function MerchantDashboard() {
+  const storeTopMargin = useNavBarHeight();
+
+  useEffect(() => {
+    const user = Taro.getStorageSync('user');
+    if (!user || user.role !== 1) Taro.redirectTo({ url: '/pages/user/profile/index' });
+  }, []);
+
   const [stats, setStats] = useState<{
     todaySales: number;
     todayOrders: number;
@@ -36,8 +44,16 @@ export default function MerchantDashboard() {
 
   if (loading) {
     return (
-      <View className='merchant-layout'>
-        <View className='loading'><Text>加载中...</Text></View>
+      <View className='merchant-layout' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+        <View className='custom-nav' style={{ height: storeTopMargin }}>
+          <View className='nav-back' onClick={() => Taro.navigateBack()}>
+            <Text className='nav-back-icon'>‹</Text>
+          </View>
+          <Text className='custom-nav-title'>营业概览</Text>
+        </View>
+        <View className='merchant-main'>
+          <View className='loading'><Text>加载中...</Text></View>
+        </View>
         <View className='merchant-nav'>
           {NAV_ITEMS.map(item => (
             <View key={item.key} className={`nav-item ${item.key === 'dashboard' ? 'active' : ''}`}>
@@ -52,8 +68,16 @@ export default function MerchantDashboard() {
 
   if (!stats) {
     return (
-      <View className='merchant-layout'>
-        <View className='error'><Text>获取数据失败</Text></View>
+      <View className='merchant-layout' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+        <View className='custom-nav' style={{ height: storeTopMargin }}>
+          <View className='nav-back' onClick={() => Taro.navigateBack()}>
+            <Text className='nav-back-icon'>‹</Text>
+          </View>
+          <Text className='custom-nav-title'>营业概览</Text>
+        </View>
+        <View className='merchant-main'>
+          <View className='error'><Text>获取数据失败</Text></View>
+        </View>
         <View className='merchant-nav'>
           {NAV_ITEMS.map(item => (
             <View key={item.key} className={`nav-item ${item.key === 'dashboard' ? 'active' : ''}`}>
@@ -67,7 +91,13 @@ export default function MerchantDashboard() {
   }
 
   return (
-    <View className='merchant-layout'>
+    <View className='merchant-layout' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
+      <View className='custom-nav' style={{ height: storeTopMargin }}>
+        <View className='nav-back' onClick={() => Taro.navigateBack()}>
+          <Text className='nav-back-icon'>‹</Text>
+        </View>
+        <Text className='custom-nav-title'>营业概览</Text>
+      </View>
       <View className='merchant-main'>
         <ScrollView className='dashboard'>
           <View className='stats-grid'>

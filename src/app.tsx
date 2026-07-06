@@ -1,4 +1,5 @@
 import { Component, PropsWithChildren } from 'react';
+import ErrorBoundary from './components/ErrorBoundary';
 import './app.scss';
 
 class App extends Component<PropsWithChildren> {
@@ -8,9 +9,8 @@ class App extends Component<PropsWithChildren> {
 
   componentDidHide() {}
 
-  // this.props.children 是将要会渲染的页面
   render() {
-    return this.props.children;
+    return <ErrorBoundary>{this.props.children}</ErrorBoundary>;
   }
 }
 
