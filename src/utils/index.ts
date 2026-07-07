@@ -1,13 +1,11 @@
 import Taro from '@tarojs/taro';
-
-// 服务器基础地址（不含 /api）
-const SERVER_BASE = 'http://192.168.1.12:3001';
+import { SERVER_BASE_URL } from '../config';
 
 // 获取完整图片 URL
 export function getImageUrl(path: string): string {
   if (!path) return '';
   if (path.startsWith('http')) return path;
-  return `${SERVER_BASE}${path}`;
+  return `${SERVER_BASE_URL}${path}`;
 }
 
 // 获取用户登录状态

@@ -71,7 +71,7 @@ export default function MerchantOrders() {
   return (
     <View className='merchant-layout' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
       <View className='custom-nav' style={{ height: storeTopMargin }}>
-        <View className='nav-back' onClick={() => Taro.navigateBack()}>
+        <View className='nav-back' onClick={() => Taro.switchTab({ url: '/pages/user/profile/index' })}>
           <Text className='nav-back-icon'>‹</Text>
         </View>
         <Text className='custom-nav-title'>订单管理</Text>
@@ -89,7 +89,26 @@ export default function MerchantOrders() {
           ))}
         </ScrollView>
 
-        {orders.length > 0 ? (
+        {loading && orders.length === 0 ? (
+          <View className='order-list' style={{ maxHeight: `calc(100vh - ${storeTopMargin}px - 130px)` }}>
+            {[1,2,3].map(i => (
+              <View key={i} className='order-card-skeleton'>
+                <View className='skeleton-row'>
+                  <View><View className='skeleton-line w30' /><View className='skeleton-line w20' style={{ marginTop: 6 }} /></View>
+                  <View className='skeleton-line w15' />
+                </View>
+                <View className='skeleton-line w60' style={{ marginTop: 10 }} />
+                <View className='skeleton-line w40' style={{ marginTop: 6 }} />
+                <View className='skeleton-divider' />
+                <View className='skeleton-row'>
+                  <View className='skeleton-line w25' />
+                  <View className='skeleton-btn-sm' />
+                </View>
+              </View>
+            ))}
+            <View style='height: 80px'></View>
+          </View>
+        ) : orders.length > 0 ? (
           <ScrollView className='order-list' scrollY style={{ maxHeight: `calc(100vh - ${storeTopMargin}px - 130px)` }}>
             {orders.map(order => (
               <View key={order.id} className='order-card'>

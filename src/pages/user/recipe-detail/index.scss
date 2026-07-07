@@ -63,6 +63,41 @@
   }
 }
 
+/* 菜品详情骨架屏 */
+.recipe-skeleton {
+  padding-bottom: 20px;
+}
+.skeleton-hero {
+  height: 350px;
+  border-radius: 24px;
+  margin: 20px 24px 0;
+  background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+.skeleton-line {
+  height: 20px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  &.w30 { width: 30%; }
+  &.w40 { width: 40%; }
+  &.w50 { width: 50%; }
+  &.w60 { width: 60%; }
+  &.w70 { width: 70%; }
+  &.w80 { width: 80%; }
+  &.w90 { width: 90%; }
+}
+.skeleton-bar-btn {
+  flex: 1;
+  height: 80px;
+  border-radius: 40px;
+  background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+
 .dish-hero {
   height: 350px;
   background: rgba(#F2F5ED, 0.95);

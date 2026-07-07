@@ -204,7 +204,7 @@ export default function MerchantDishes() {
     return (
       <View className='merchant-layout' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
         <View className='custom-nav' style={{ height: storeTopMargin }}>
-          <View className='nav-back' onClick={() => Taro.navigateBack()}>
+          <View className='nav-back' onClick={() => Taro.switchTab({ url: '/pages/user/profile/index' })}>
             <Text className='nav-back-icon'>‹</Text>
           </View>
           <Text className='custom-nav-title'>{editingDish ? '编辑菜品' : '新增菜品'}</Text>
@@ -302,7 +302,7 @@ export default function MerchantDishes() {
   return (
     <View className='merchant-layout' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
       <View className='custom-nav' style={{ height: storeTopMargin }}>
-        <View className='nav-back' onClick={() => Taro.navigateBack()}>
+        <View className='nav-back' onClick={() => Taro.switchTab({ url: '/pages/user/profile/index' })}>
           <Text className='nav-back-icon'>‹</Text>
         </View>
         <Text className='custom-nav-title'>菜品管理</Text>
@@ -371,6 +371,18 @@ export default function MerchantDishes() {
       </View>
 
       <ScrollView className='dish-list' scrollY>
+        {loading ? (
+          [1,2,3].map(i => (
+            <View key={i} className='dish-card-skeleton'>
+              <View className='skeleton-img' />
+              <View className='skeleton-info-blk'>
+                <View className='skeleton-line w60' />
+                <View className='skeleton-line w30' />
+                <View className='skeleton-line w40' />
+              </View>
+            </View>
+          ))
+        ) : (<>
         {filteredDishes.map(dish => (
           <View key={dish.id} className='dish-card'>
             <View className='dish-main'>
@@ -402,6 +414,7 @@ export default function MerchantDishes() {
           </View>
         ))}
         <View style='height:120px'></View>
+            </>)}
       </ScrollView>
 
       <View className='add-btn' onClick={showAddForm}>

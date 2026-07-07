@@ -76,7 +76,29 @@ export default function RecipeDetail() {
           </View>
           <Text className='custom-nav-title'>商品详情</Text>
         </View>
-        <View className='recipe-loading'><Text>加载中...</Text></View>
+        <View className='recipe-scroll'>
+          <View className='recipe-scroll-inner recipe-skeleton'>
+            <View className='skeleton-hero' />
+            <View className='glass-section'>
+              <View className='skeleton-line w60' />
+              <View className='skeleton-line w30' style={{ marginTop: 8 }} />
+              <View className='skeleton-line w80' style={{ marginTop: 8 }} />
+            </View>
+            <View className='glass-section'>
+              <View className='skeleton-line w40' />
+              <View className='skeleton-line w90' style={{ marginTop: 12 }} />
+              <View className='skeleton-line w70' style={{ marginTop: 8 }} />
+              <View className='skeleton-line w50' style={{ marginTop: 8 }} />
+            </View>
+            <View className='glass-section'>
+              <View className='skeleton-line w40' />
+              <View className='skeleton-line w90' style={{ marginTop: 12 }} />
+            </View>
+          </View>
+        </View>
+        <View className='recipe-bottom-bar'>
+          <View className='skeleton-bar-btn' />
+        </View>
       </View>
     );
   }

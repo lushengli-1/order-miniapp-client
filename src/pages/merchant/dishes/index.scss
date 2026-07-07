@@ -182,3 +182,40 @@
   font-weight: 600;
   box-shadow: 0 4px 16px rgba(141, 181, 128, 0.25);
 }
+
+/* 骨架屏 */
+.dish-card-skeleton {
+  display: flex;
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  .skeleton-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+    background-size: 200% 100%;
+    animation: skeleton-pulse 1.6s ease-in-out infinite;
+  }
+  .skeleton-info-blk {
+    flex: 1;
+    margin-left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+  }
+  .skeleton-line {
+    height: 20px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+    background-size: 200% 100%;
+    animation: skeleton-pulse 1.6s ease-in-out infinite;
+    &.w30 { width: 30%; }
+    &.w40 { width: 40%; }
+    &.w60 { width: 60%; }
+  }
+}

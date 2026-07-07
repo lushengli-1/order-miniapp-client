@@ -20,12 +20,11 @@ const TABS = [
 export default function Orders() {
   const storeTopMargin = useNavBarHeight();
 
-  const [orders, setOrders] = useState<Order[]>([]);
+const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState(-1);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [isMerchant, setIsMerchant] = useState(false);
   const stateRef = useRef({ activeTab, page });
   stateRef.current = { activeTab, page };
   const [needLogin, setNeedLogin] = useState(!Taro.getStorageSync('token'));
@@ -46,12 +45,12 @@ export default function Orders() {
   });
 
   function loadPageData() {
-    const user = Taro.getStorageSync('user');
-    if (user?.role === 1) {
-      setIsMerchant(true);
+    // 商家跳转到菜品管理
+    const u = Taro.getStorageSync('user');
+    if (u?.role === 1) {
+      Taro.redirectTo({ url: '/pages/merchant/dishes/index' });
       return;
     }
-    setIsMerchant(false);
     const { activeTab, page } = stateRef.current;
     loadOrders(activeTab, page);
   }
@@ -205,17 +204,11 @@ export default function Orders() {
     );
   }
 
-  if (isMerchant) {
-    return (
-      <View className='role-notice'>
-        <Text className='role-notice-icon'>🧑‍🍳</Text>
-        <Text className='role-notice-title'>当前为大厨身份</Text>
-        <Text className='role-notice-desc'>请前往"我的"页面管理店铺</Text>
-        <View className='role-notice-btn' onClick={() => Taro.switchTab({ url: '/pages/user/profile/index' })}>
-          前往"我的"
-        </View>
-      </View>
-    );
+  // 商家跳转到菜品管理
+  const _u = Taro.getStorageSync('user');
+  if (_u?.role === 1) {
+    Taro.redirectTo({ url: '/pages/merchant/dishes/index' });
+    return null;
   }
 
   return (
@@ -237,11 +230,22 @@ export default function Orders() {
       </ScrollView>
 
       {loading && orders.length === 0 ? (
-        <View className='empty-state'>
-          <View className='empty-card'>
-            <Text className='empty-icon'>⏳</Text>
-            <Text className='empty-text'>加载中...</Text>
-            <Text className='empty-hint'>请稍候</Text>
+        <View className='order-content' style={{ maxHeight: `calc(100vh - ${storeTopMargin}px - 100px - 24px)` }}>
+          <View className='order-list'>
+            {[1,2,3].map(i => (
+              <View key={i} className='order-card-skeleton'>
+                <View className='skeleton-row'>
+                  <View className='skeleton-line w40' />
+                  <View className='skeleton-line w20' />
+                </View>
+                <View className='skeleton-line w60' style={{ marginTop: 12 }} />
+                <View className='skeleton-divider' />
+                <View className='skeleton-row'>
+                  <View className='skeleton-line w30' />
+                  <View className='skeleton-btn' />
+                </View>
+              </View>
+            ))}
           </View>
         </View>
       ) : orders.length > 0 || loading ? (

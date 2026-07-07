@@ -22,8 +22,6 @@ export default function Profile() {
   const [registerUsername, setRegisterUsername] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerNickname, setRegisterNickname] = useState('');
-  const [registerAsMerchant, setRegisterAsMerchant] = useState(false);
-  const [registerInviteCode, setRegisterInviteCode] = useState('');
   const [editingNickname, setEditingNickname] = useState(false);
   const [nicknameValue, setNicknameValue] = useState('');
 
@@ -56,33 +54,7 @@ export default function Profile() {
       const isNew = data.is_new;
 
       if (isNew) {
-        // 新用户选择身份
-        const role = await new Promise<number>((resolve) => {
-          Taro.showActionSheet({
-            itemList: ['吃货', '大厨'],
-            success: (res) => resolve(res.tapIndex),
-            fail: () => resolve(-1)
-          });
-        });
-        if (role < 0) return;
-
-        let inviteCode = '';
-        if (role === 1) {
-          const code = await new Promise<string>((resolve) => {
-            Taro.showModal({
-              title: '大厨注册',
-              content: '请输入邀请码',
-              editable: true,
-              placeholderText: '邀请码',
-              success: (r) => resolve(r.confirm && r.content ? r.content : ''),
-              fail: () => resolve('')
-            });
-          });
-          if (!code) return;
-          inviteCode = code;
-        }
-
-        // 设置昵称
+        // 新用户设置昵称
         const nickname = await new Promise<string>((resolve) => {
           Taro.showModal({
             title: '设置昵称',
@@ -100,7 +72,7 @@ export default function Profile() {
         if (!nickname) return;
 
         // 提交补全信息
-        const updated = await authAPI.setupUser({ role, nickname, invite_code: inviteCode || undefined });
+        const updated = await authAPI.setupUser({ nickname });
         Taro.setStorageSync('user', updated.user);
         setUser(updated.user);
       } else {
@@ -153,9 +125,7 @@ export default function Profile() {
       const data = await authAPI.register({
         username: registerUsername,
         password: registerPassword,
-        nickname: registerNickname || registerUsername,
-        role: registerAsMerchant ? 1 : 0,
-        invite_code: registerAsMerchant ? registerInviteCode : undefined
+        nickname: registerNickname || registerUsername
       });
       Taro.setStorageSync('token', data.token);
       Taro.setStorageSync('user', data.user);
@@ -332,16 +302,6 @@ export default function Profile() {
               onInput={e => setRegisterNickname(e.detail.value)} />
             <Input className='form-input' placeholder='密码（至少4位）' password value={registerPassword}
               onInput={e => setRegisterPassword(e.detail.value)} />
-            <View className='role-toggle'>
-              <Text className={`role-option ${!registerAsMerchant ? 'active' : ''}`}
-                onClick={() => setRegisterAsMerchant(false)}>吃货</Text>
-              <Text className={`role-option ${registerAsMerchant ? 'active' : ''}`}
-                onClick={() => setRegisterAsMerchant(true)}>大厨</Text>
-            </View>
-            {registerAsMerchant && (
-              <Input className='form-input' placeholder='邀请码' value={registerInviteCode}
-                onInput={e => setRegisterInviteCode(e.detail.value)} />
-            )}
             <View className='form-btn' onClick={handleRegister}>注册</View>
             <Text className='form-link' onClick={() => setShowRegister(false)}>已有账号？去登录</Text>
           </View>

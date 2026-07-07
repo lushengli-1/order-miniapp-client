@@ -275,9 +275,71 @@
   .empty-text { color: #BFB8AD; font-size: 26px; }
 }
 
-.loading {
-  display: flex; align-items: center; justify-content: center;
-  height: 300px; color: #BFB8AD; font-size: 28px;
+/* 骨架屏 */
+@keyframes skeleton-pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+.category-item-skeleton {
+  height: 36px;
+  margin: 24px 16px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+.dish-card-skeleton {
+  display: flex;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 18px;
+  padding: 24px;
+  margin-bottom: 16px;
+  border: 1px solid #F0EDE7;
+  .skeleton-img {
+    width: 170px;
+    height: 170px;
+    border-radius: 14px;
+    margin-right: 18px;
+    flex-shrink: 0;
+    background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+    background-size: 200% 100%;
+    animation: skeleton-pulse 1.6s ease-in-out infinite;
+  }
+  .skeleton-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+  }
+  .skeleton-line {
+    height: 20px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+    background-size: 200% 100%;
+    animation: skeleton-pulse 1.6s ease-in-out infinite;
+    &.w60 { width: 60%; }
+    &.w80 { width: 80%; }
+    &.w40 { width: 40%; }
+    &.w30 { width: 30%; }
+  }
+  .skeleton-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+  }
+  .skeleton-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+    background-size: 200% 100%;
+    animation: skeleton-pulse 1.6s ease-in-out infinite;
+  }
 }
 
 /* 底部购物车栏 */
@@ -340,23 +402,3 @@
   }
 }
 
-/* 角色提示 */
-.role-notice {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background: #F7F4EF;
-  .role-notice-icon { font-size: 80px; margin-bottom: 20px; }
-  .role-notice-title { font-size: 32px; font-weight: 600; color: #3D3929; margin-bottom: 10px; }
-  .role-notice-desc { font-size: 26px; color: #BFB8AD; margin-bottom: 30px; }
-  .role-notice-btn {
-    background: linear-gradient(135deg, #8DB580, #B5D3A7);
-    color: #fff;
-    padding: 20px 60px;
-    border-radius: 40px;
-    font-size: 28px;
-    font-weight: 600;
-  }
-}

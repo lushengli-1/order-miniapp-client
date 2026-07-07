@@ -177,14 +177,14 @@ $bg-color: #F8F6F0;
   }
 }
 
-/* 角色提示页 */
+/* 角色提示页（统一样式：所有页面使用同一套高度/居中/背景） */
 .role-notice {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 70vh;
-  padding: 40px;
+  height: 100vh;
+  background: $bg-color;
 }
 .role-notice-icon { font-size: 80px; margin-bottom: 20px; }
 .role-notice-title { font-size: 32px; font-weight: 600; color: $text-primary; margin-bottom: 12px; }
@@ -195,4 +195,11 @@ $bg-color: #F8F6F0;
   padding: 20px 60px;
   border-radius: 40px;
   font-size: 28px;
+}
+
+/* 骨架屏全局动画 */
+@keyframes skeleton-pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
 }

@@ -62,12 +62,22 @@ export default function MerchantSettings() {
     return (
       <View className='merchant-layout' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
         <View className='custom-nav' style={{ height: storeTopMargin }}>
-          <View className='nav-back' onClick={() => Taro.navigateBack()}>
+          <View className='nav-back' onClick={() => Taro.switchTab({ url: '/pages/user/profile/index' })}>
             <Text className='nav-back-icon'>‹</Text>
           </View>
           <Text className='custom-nav-title'>店铺设置</Text>
         </View>
-        <View className='loading'><Text>加载中...</Text></View>
+        <View className='settings-skeleton'>
+          <View className='skeleton-section'>
+            {[1,2,3,4,5].map(i => (
+              <View key={i} className='skeleton-row' style={{ marginTop: 16 }}>
+                <View className='skeleton-line w25' />
+                <View className='skeleton-line w60' style={{ marginTop: 8 }} />
+              </View>
+            ))}
+          </View>
+          <View className='skeleton-line w40' style={{ margin: '24px auto' }} />
+        </View>
         <View className='merchant-nav'>
           {NAV_ITEMS.map(item => (
             <View key={item.key} className={`nav-item ${item.key === 'settings' ? 'active' : ''}`}
@@ -84,7 +94,7 @@ export default function MerchantSettings() {
   return (
     <View className='merchant-layout' style={`background-image: url(${getImageUrl('/uploads/bg.jpg')})`}>
       <View className='custom-nav' style={{ height: storeTopMargin }}>
-        <View className='nav-back' onClick={() => Taro.navigateBack()}>
+        <View className='nav-back' onClick={() => Taro.switchTab({ url: '/pages/user/profile/index' })}>
           <Text className='nav-back-icon'>‹</Text>
         </View>
         <Text className='custom-nav-title'>店铺设置</Text>

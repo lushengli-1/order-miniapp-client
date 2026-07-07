@@ -55,6 +55,52 @@
 
 .empty { text-align: center; padding: 40px; color: #BFB8AD; font-size: 26px; }
 
+/* 骨架屏 */
+.dashboard-skeleton {
+  flex: 1;
+  padding: 20px 0;
+  position: relative;
+  z-index: 1;
+  overflow-y: auto;
+}
+.skeleton-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 0 20px;
+}
+.skeleton-stat-card {
+  height: 100px;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+.skeleton-section {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  margin-top: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+.skeleton-line {
+  height: 20px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  &.w20 { width: 20%; }
+  &.w25 { width: 25%; }
+  &.w30 { width: 30%; }
+  &.w40 { width: 40%; }
+  &.w50 { width: 50%; }
+}
+.skeleton-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .trend-list {
   .trend-item {
     display: flex;

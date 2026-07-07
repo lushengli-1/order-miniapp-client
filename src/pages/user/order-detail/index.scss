@@ -54,6 +54,42 @@
   font-size: 28px;
 }
 
+/* 骨架屏 */
+.skeleton-section {
+  background: rgba(236, 234, 234, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 24px;
+}
+.skeleton-line {
+  height: 20px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  &.w15 { width: 15%; }
+  &.w30 { width: 30%; }
+  &.w40 { width: 40%; }
+  &.w50 { width: 50%; }
+  &.w60 { width: 60%; }
+}
+.skeleton-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.skeleton-square {
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+
 /* 状态区 */
 .status-section {
   padding: 40px 30px;

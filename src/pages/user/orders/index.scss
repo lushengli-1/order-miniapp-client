@@ -150,7 +150,6 @@
     padding: 60px 80px;
     min-width: 400px;
     box-shadow: 0 4px 20px rgba(141, 181, 128, 0.1);
-    margin-bottom: 88px;
   }
   .empty-icon { font-size: 80px; margin-bottom: 20px; }
   .empty-text { font-size: 28px; color: #8C857B; margin-bottom: 8px; font-weight: 500; }
@@ -172,22 +171,43 @@
   font-size: 24px;
 }
 
-.role-notice {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background: #F7F4EF;
-  .role-notice-icon { font-size: 80px; margin-bottom: 20px; }
-  .role-notice-title { font-size: 32px; font-weight: 600; color: #3D3929; margin-bottom: 10px; }
-  .role-notice-desc { font-size: 26px; color: #BFB8AD; margin-bottom: 30px; }
-  .role-notice-btn {
-    background: linear-gradient(135deg, #8DB580, #B5D3A7);
-    color: #fff;
-    padding: 20px 60px;
-    border-radius: 40px;
-    font-size: 28px;
-    font-weight: 600;
-  }
+/* 骨架屏 */
+.order-card-skeleton {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 16px;
 }
+.skeleton-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.skeleton-line {
+  height: 20px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  &.w15 { width: 15%; }
+  &.w20 { width: 20%; }
+  &.w30 { width: 30%; }
+  &.w40 { width: 40%; }
+  &.w60 { width: 60%; }
+}
+.skeleton-divider {
+  height: 1px;
+  background: rgba(240, 245, 236, 0.6);
+  margin: 16px 0;
+}
+.skeleton-btn {
+  width: 80px;
+  height: 40px;
+  border-radius: 30px;
+  background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+

@@ -96,7 +96,30 @@ export default function OrderDetail() {
           </View>
         <Text className='custom-nav-title'>订单详情</Text>
         </View>
-        <View className='loading'><Text>加载中...</Text></View>
+        <View className='detail-content'>
+          <View className='skeleton-section'>
+            <View className='skeleton-line w40' />
+            <View className='skeleton-line w50' style={{ marginTop: 8 }} />
+          </View>
+          <View className='skeleton-section'>
+            <View className='skeleton-line w30' />
+            {[1,2,3].map(i => (
+              <View key={i} className='skeleton-row' style={{ marginTop: 16 }}>
+                <View className='skeleton-square' />
+                <View className='skeleton-line w50' />
+                <View className='skeleton-line w15' />
+              </View>
+            ))}
+          </View>
+          <View className='skeleton-section'>
+            {[1,2,3].map(i => (
+              <View key={i} className='skeleton-row' style={{ marginTop: 12 }}>
+                <View className='skeleton-line w40' />
+                <View className='skeleton-line w30' />
+              </View>
+            ))}
+          </View>
+        </View>
       </View>
     );
   }

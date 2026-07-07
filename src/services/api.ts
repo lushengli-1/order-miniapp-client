@@ -1,6 +1,7 @@
 import Taro from '@tarojs/taro';
+import { API_BASE_URL } from '../config';
 
-const BASE_URL = 'http://192.168.1.12:3001/api';
+const BASE_URL = API_BASE_URL;
 
 const request = (url: string, options: any = {}) => {
   const token = Taro.getStorageSync('token');

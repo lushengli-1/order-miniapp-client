@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 300px;
+  flex: 1;
   color: #BFB8AD;
   font-size: 28px;
   position: relative;
@@ -47,4 +47,32 @@
   font-weight: 600;
   margin-top: 40px;
   box-shadow: 0 4px 16px rgba(141, 181, 128, 0.25);
+}
+
+/* 骨架屏 */
+.settings-skeleton {
+  flex: 1;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+.skeleton-section {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+.skeleton-row {
+  display: flex;
+  flex-direction: column;
+}
+.skeleton-line {
+  height: 20px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  &.w25 { width: 25%; }
+  &.w40 { width: 40%; }
+  &.w60 { width: 60%; }
 }

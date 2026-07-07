@@ -88,3 +88,43 @@
   .empty-text { font-size: 28px; color: #8C857B; margin-bottom: 8px; font-weight: 500; }
   .empty-hint { font-size: 24px; color: #BFB8AD; margin-bottom: 24px; }
 }
+
+/* 骨架屏 */
+.order-card-skeleton {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+.skeleton-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.skeleton-line {
+  height: 20px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  &.w15 { width: 15%; }
+  &.w20 { width: 20%; }
+  &.w25 { width: 25%; }
+  &.w30 { width: 30%; }
+  &.w40 { width: 40%; }
+  &.w60 { width: 60%; }
+}
+.skeleton-divider {
+  height: 1px;
+  background: #F0F5EC;
+  margin: 16px 0;
+}
+.skeleton-btn-sm {
+  width: 70px;
+  height: 34px;
+  border-radius: 30px;
+  background: linear-gradient(90deg, #E8E5DE 25%, #F0EDE7 50%, #E8E5DE 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}

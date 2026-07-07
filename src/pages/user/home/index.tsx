@@ -24,14 +24,13 @@ interface CartItem {
 export default function Home() {
   const storeTopMargin = useNavBarHeight();
 
-  const [storeInfo, setStoreInfo] = useState<any>(null);
+const [storeInfo, setStoreInfo] = useState<any>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [dishes, setDishes] = useState<Dish[]>([]);
   const [activeCategory, setActiveCategory] = useState(0);
   const [keyword, setKeyword] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isMerchant, setIsMerchant] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [showFavorites, setShowFavorites] = useState(false);
@@ -48,18 +47,17 @@ export default function Home() {
   });
 
   function loadPageData() {
+    // 商家跳转到营业概览
+    const u = Taro.getStorageSync('user');
+    if (u?.role === 1) {
+      Taro.redirectTo({ url: '/pages/merchant/dashboard/index' });
+      return;
+    }
     // 从本地存储恢复购物车数据（即时显示）
     const savedCart = Taro.getStorageSync('cart_items') || [];
     setCart(savedCart);
 
-    const user = Taro.getStorageSync('user');
     const token = Taro.getStorageSync('token');
-    if (user?.role === 1) {
-      setIsMerchant(true);
-      setLoading(false);
-      return;
-    }
-    setIsMerchant(false);
     loadData();
     if (token) syncCartFromServer();
   }
@@ -122,7 +120,7 @@ export default function Home() {
   const filteredDishes = useMemo(
     () => {
       if (isSearching) return dishes;
-      if (showPopular) return popularDishes;
+      if (showPopular) return popularDishes.length > 0 ? popularDishes : dishes;
       if (showFavorites) return dishes.filter(d => favorites.has(d.id));
       return dishes.filter(d => d.category_id === activeCategory);
     },
@@ -218,17 +216,11 @@ export default function Home() {
     Taro.switchTab({ url: '/pages/user/cart/index' });
   }
 
-  if (isMerchant) {
-    return (
-      <View className='role-notice'>
-        <Text className='role-notice-icon'>🧑‍🍳</Text>
-        <Text className='role-notice-title'>当前为大厨身份</Text>
-        <Text className='role-notice-desc'>请前往"我的"页面管理店铺</Text>
-        <View className='role-notice-btn' onClick={() => Taro.switchTab({ url: '/pages/user/profile/index' })}>
-          前往"我的"
-        </View>
-      </View>
-    );
+  // 商家跳转到营业概览
+  const _u = Taro.getStorageSync('user');
+  if (_u?.role === 1) {
+    Taro.redirectTo({ url: '/pages/merchant/dashboard/index' });
+    return null;
   }
 
   return (
@@ -256,7 +248,31 @@ export default function Home() {
       </View>
 
       {loading ? (
-        <View className='loading'><Text>加载中...</Text></View>
+        <View className='content'>
+          <View className='category-sidebar'>
+            {[1,2,3,4,5,6].map(i => (
+              <View key={i} className='category-item-skeleton' />
+            ))}
+          </View>
+          <View className='dish-list'>
+            <View className='dish-list-inner'>
+              {[1,2,3,4].map(i => (
+                <View key={i} className='dish-card-skeleton'>
+                  <View className='skeleton-img' />
+                  <View className='skeleton-info'>
+                    <View className='skeleton-line w60' />
+                    <View className='skeleton-line w80' />
+                    <View className='skeleton-line w40' />
+                    <View className='skeleton-price-row'>
+                      <View className='skeleton-line w30' />
+                      <View className='skeleton-btn' />
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
       ) : (
         <View className='content'>
           <ScrollView className='category-sidebar' scrollY>

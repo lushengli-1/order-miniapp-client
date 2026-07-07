@@ -15,9 +15,8 @@ interface CartItem {
 export default function Cart() {
   const storeTopMargin = useNavBarHeight();
 
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [isMerchant, setIsMerchant] = useState(false);
   const [needLogin, setNeedLogin] = useState(!Taro.getStorageSync('token'));
 
   const totalAmount = useMemo(() => cartItems.reduce((s, i) => s + i.price * i.quantity, 0), [cartItems]);
@@ -39,17 +38,13 @@ export default function Cart() {
   });
 
   function loadPageData() {
-    const user = Taro.getStorageSync('user');
-    if (user?.role === 1) {
-      setIsMerchant(true);
+    // 商家跳转到订单管理
+    const u = Taro.getStorageSync('user');
+    if (u?.role === 1) {
+      Taro.redirectTo({ url: '/pages/merchant/orders/index' });
       return;
     }
-    setIsMerchant(false);
     loadCart();
-  }
-
-  function syncToStorage(items: CartItem[]) {
-    Taro.setStorageSync('cart_items', items);
   }
 
   async function loadCart() {
@@ -169,17 +164,11 @@ export default function Cart() {
     );
   }
 
-  if (isMerchant) {
-    return (
-      <View className='role-notice'>
-        <Text className='role-notice-icon'>🧑‍🍳</Text>
-        <Text className='role-notice-title'>当前为大厨身份</Text>
-        <Text className='role-notice-desc'>请前往"我的"页面管理店铺</Text>
-        <View className='role-notice-btn' onClick={() => Taro.switchTab({ url: '/pages/user/profile/index' })}>
-          前往"我的"
-        </View>
-      </View>
-    );
+  // 商家跳转到订单管理
+  const _u = Taro.getStorageSync('user');
+  if (_u?.role === 1) {
+    Taro.redirectTo({ url: '/pages/merchant/orders/index' });
+    return null;
   }
 
   return (
